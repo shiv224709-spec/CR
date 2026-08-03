@@ -82,6 +82,9 @@
                 <button @click="currentTab = 'inventory'; mobileMenuOpen = false" :class="currentTab === 'inventory' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm">
                     Inventory & Stock
                 </button>
+                <button @click="currentTab = 'pos'; mobileMenuOpen = false" :class="currentTab === 'pos' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm">
+                    🛍️ Street Cart / POS
+                </button>
                 <button @click="currentTab = 'payments'; mobileMenuOpen = false" :class="currentTab === 'payments' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm">
                     Payments & Sales
                 </button>
@@ -92,7 +95,7 @@
 
             <div class="p-4 m-4 bg-rose-50 rounded-2xl border border-rose-100 text-center">
                 <p class="text-xs font-medium text-rose-800">ShivShakti Store Portal</p>
-                <span class="text-[10px] text-rose-600 font-bold block mt-1">Dashboard Active</span>
+                <span class="text-[10px] text-rose-600 font-bold block mt-1">Street Stall Ready</span>
             </div>
         </aside>
 
@@ -101,7 +104,7 @@
             
             <header class="hidden md:flex bg-white border-b border-slate-200 px-8 py-4 justify-between items-center z-10 shadow-sm">
                 <div>
-                    <h1 class="text-xl font-bold capitalize text-slate-800" x-text="currentTab === 'dashboard' ? 'Home Dashboard' : currentTab"></h1>
+                    <h1 class="text-xl font-bold capitalize text-slate-800" x-text="currentTab === 'dashboard' ? 'Home Dashboard' : (currentTab === 'pos' ? 'Street Cart / POS' : currentTab)"></h1>
                     <p class="text-xs text-slate-400">Live store management system</p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -121,7 +124,7 @@
                         <div>
                             <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">Store Overview</span>
                             <h2 class="text-2xl md:text-3xl font-extrabold mt-3">Welcome to ShivShakti!</h2>
-                            <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Manage inventory, monitor revenues, and check profits effortlessly.</p>
+                            <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Manage inventory, handle street bargains quickly, and check profits effortlessly.</p>
                         </div>
                         <div class="bg-white/10 p-4 rounded-2xl w-full md:w-auto text-left md:text-right">
                             <span class="text-xs text-rose-200 block">Total Net Profit</span>
@@ -162,7 +165,7 @@
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">Crochet Item Inventory</h2>
-                            <p class="text-xs text-slate-400">Add and manage your crochet items</p>
+                            <p class="text-xs text-slate-400">Add and manage your crochet items with product images</p>
                         </div>
                         <button @click="openModal = true" class="w-full sm:w-auto bg-rose-500 hover:bg-rose-600 text-white font-medium px-5 py-2.5 rounded-xl shadow-lg shadow-rose-100 transition flex items-center justify-center gap-2 text-sm">
                             Add New Item
@@ -173,18 +176,21 @@
                         <table class="w-full text-left border-collapse min-w-[700px]">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                    <th class="p-4">Image</th>
                                     <th class="p-4">Product Name</th>
                                     <th class="p-4">Category</th>
                                     <th class="p-4">Cost Price</th>
                                     <th class="p-4">Selling Price</th>
                                     <th class="p-4">Stock Quantity</th>
-                                    <th class="p-4">Status</th>
                                     <th class="p-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-sm">
                                 <template x-for="item in inventory" :key="item.id">
                                     <tr>
+                                        <td class="p-4">
+                                            <img :src="item.image || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=100&auto=format&fit=crop&q=60'" class="w-12 h-12 object-cover rounded-xl border border-slate-200">
+                                        </td>
                                         <td class="p-4 font-semibold text-slate-900" x-text="item.name"></td>
                                         <td class="p-4 text-slate-500" x-text="item.category"></td>
                                         <td class="p-4 text-slate-500" x-text="`₹${Number(item.costPrice || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
@@ -195,9 +201,6 @@
                                                 <span class="w-8 text-center font-semibold" x-text="item.stock"></span>
                                                 <button @click="updateStock(item, 1)" class="w-7 h-7 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold flex items-center justify-center text-slate-600">+</button>
                                             </div>
-                                        </td>
-                                        <td class="p-4">
-                                            <span class="px-3 py-1 rounded-full text-xs font-semibold" :class="item.stock <= 3 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'" x-text="item.stock <= 3 ? 'Low Stock' : 'In Stock'"></span>
                                         </td>
                                         <td class="p-4 text-right">
                                             <button @click="deleteItem(item.id)" class="text-rose-500 hover:text-rose-700 font-medium text-xs">Remove</button>
@@ -212,7 +215,48 @@
                     </div>
                 </div>
 
-                <!-- 3. PAYMENTS VIEW -->
+                <!-- 3. STREET CART / POS TAB (Bargain & Direct Sale) -->
+                <div x-show="currentTab === 'pos'" class="space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">🛍️ Street Cart / Live Stall Sales</h2>
+                        <p class="text-xs text-slate-400">View your product images, adjust the price instantly for customer bargaining, and sell on the spot!</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <template x-for="item in inventory" :key="'pos-'+item.id">
+                            <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between space-y-4">
+                                <div>
+                                    <div class="relative w-full h-48 rounded-2xl overflow-hidden bg-slate-100 mb-4 border border-slate-100">
+                                        <img :src="item.image || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&auto=format&fit=crop&q=80'" class="w-full h-full object-cover">
+                                        <span class="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full" x-text="`Stock: ${item.stock}`"></span>
+                                    </div>
+                                    <h3 class="font-bold text-slate-900 text-lg" x-text="item.name"></h3>
+                                    <p class="text-xs text-slate-400" x-text="item.category"></p>
+                                    <p class="text-xs font-semibold text-slate-500 mt-1">Original Tag Price: ₹<span x-text="item.price"></span></p>
+                                </div>
+
+                                <div class="space-y-3 pt-2 border-t border-slate-100">
+                                    <div>
+                                        <label class="block text-[11px] font-bold uppercase tracking-wider text-rose-500 mb-1">Bargained / Final Price (₹)</label>
+                                        <!-- Rounded Corner Rectangle Typing Box -->
+                                        <input type="number" x-model.number="item.bargainPrice" class="w-full px-4 py-3 rounded-2xl border-2 border-rose-200 focus:border-rose-500 bg-rose-50/30 font-bold text-slate-900 text-lg outline-none transition text-center" :placeholder="item.price">
+                                    </div>
+
+                                    <button @click="sellItemOnSpot(item)" class="w-full bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-bold py-3 rounded-2xl shadow-lg shadow-rose-100 transition text-sm flex items-center justify-center gap-2">
+                                        <span>Sell Instantly</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div x-show="inventory.length === 0" class="bg-white rounded-3xl p-12 text-center border border-slate-100">
+                        <p class="text-slate-400 text-sm">No products available in inventory. Go to **Inventory & Stock** to add items with images first!</p>
+                    </div>
+                </div>
+
+                <!-- 4. PAYMENTS VIEW -->
                 <div x-show="currentTab === 'payments'" class="space-y-6">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">Payments & Orders</h2>
@@ -221,7 +265,7 @@
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-fit space-y-4">
-                            <h3 class="font-bold text-slate-800 text-base">Record Payment</h3>
+                            <h3 class="font-bold text-slate-800 text-base">Record Manual Payment</h3>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Customer Name</label>
                                 <input type="text" x-model="newPayment.customer" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="Customer Name">
@@ -237,9 +281,9 @@
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Payment Method</label>
                                 <select x-model="newPayment.method" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm">
+                                    <option value="Cash">Cash (Street Stall)</option>
                                     <option value="UPI / Online">UPI / Online</option>
                                     <option value="Credit Card">Credit Card</option>
-                                    <option value="Cash on Delivery">Cash on Delivery</option>
                                     <option value="Bank Transfer">Bank Transfer</option>
                                 </select>
                             </div>
@@ -280,7 +324,7 @@
                     </div>
                 </div>
 
-                <!-- 4. PROFIT & ANALYTICS VIEW -->
+                <!-- 5. PROFIT & ANALYTICS VIEW -->
                 <div x-show="currentTab === 'profit'" class="space-y-6">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">Profit & Financial Analytics</h2>
@@ -307,18 +351,22 @@
         </main>
     </div>
 
-    <!-- Modal for Adding Inventory Item -->
+    <!-- Modal for Adding Inventory Item with Image -->
     <div x-show="openModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 space-y-6 shadow-2xl m-4">
             <h3 class="text-xl font-bold text-slate-900">Add New Crochet Item</h3>
             <div class="space-y-4 text-sm">
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Item Name</label>
-                    <input type="text" x-model="newItem.name" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="Item Name">
+                    <input type="text" x-model="newItem.name" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="e.g. Crochet Tulip Bouquet">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Category</label>
-                    <input type="text" x-model="newItem.category" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="Category">
+                    <input type="text" x-model="newItem.category" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="e.g. Flowers">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Product Image Link (URL)</label>
+                    <input type="text" x-model="newItem.image" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="Paste image web link here">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -351,15 +399,18 @@
                 openModal: false,
                 inventory: [],
                 payments: [],
-                newItem: { name: '', category: '', costPrice: '', price: '', stock: '' },
-                newPayment: { customer: '', amount: '', cost: '', method: 'UPI / Online' },
+                newItem: { name: '', category: '', image: '', costPrice: '', price: '', stock: '' },
+                newPayment: { customer: '', amount: '', cost: '', method: 'Cash' },
 
                 init() {
                     if (window.db) {
                         try {
                             const { collection, onSnapshot } = window.firebaseTools;
                             onSnapshot(collection(window.db, "inventory"), (snapshot) => {
-                                this.inventory = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+                                this.inventory = snapshot.docs.map(doc => {
+                                    let data = doc.data();
+                                    return { firebaseId: doc.id, bargainPrice: data.price, ...data };
+                                });
                             });
                             onSnapshot(collection(window.db, "payments"), (snapshot) => {
                                 this.payments = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
@@ -371,7 +422,8 @@
                     }
 
                     // Local storage fallback mode
-                    this.inventory = JSON.parse(localStorage.getItem('shivshakti_inventory_zero')) || [];
+                    let localInv = JSON.parse(localStorage.getItem('shivshakti_inventory_zero')) || [];
+                    this.inventory = localInv.map(item => ({ ...item, bargainPrice: item.bargainPrice || item.price }));
                     this.payments = JSON.parse(localStorage.getItem('shivshakti_payments_zero')) || [];
                 },
 
@@ -387,6 +439,7 @@
                         id: Date.now(),
                         name: this.newItem.name,
                         category: this.newItem.category || 'General',
+                        image: this.newItem.image || '',
                         costPrice: Number(this.newItem.costPrice) || 0,
                         price: Number(this.newItem.price) || 0,
                         stock: Number(this.newItem.stock) || 0
@@ -397,15 +450,17 @@
                             const { collection, addDoc } = window.firebaseTools;
                             await addDoc(collection(window.db, "inventory"), itemData);
                         } catch (e) {
+                            itemData.bargainPrice = itemData.price;
                             this.inventory.push(itemData);
                             this.saveLocal();
                         }
                     } else {
+                        itemData.bargainPrice = itemData.price;
                         this.inventory.push(itemData);
                         this.saveLocal();
                     }
 
-                    this.newItem = { name: '', category: '', costPrice: '', price: '', stock: '' };
+                    this.newItem = { name: '', category: '', image: '', costPrice: '', price: '', stock: '' };
                     this.openModal = false;
                 },
 
@@ -435,6 +490,44 @@
                     this.saveLocal();
                 },
 
+                // Instant street sale triggered from the POS / Cart tab
+                async sellItemOnSpot(item) {
+                    if (Number(item.stock || 0) <= 0) {
+                        alert("Item is out of stock!");
+                        return;
+                    }
+
+                    const finalSalePrice = Number(item.bargainPrice !== undefined ? item.bargainPrice : item.price);
+
+                    // 1. Reduce Stock
+                    await this.updateStock(item, -1);
+
+                    // 2. Automatically record payment entry
+                    const paymentData = {
+                        id: Date.now(),
+                        customer: `Street Customer (${item.name})`,
+                        amount: finalSalePrice,
+                        cost: Number(item.costPrice || 0),
+                        method: 'Cash / Stall',
+                        date: new Date().toISOString().split('T')[0]
+                    };
+
+                    if (window.db) {
+                        try {
+                            const { collection, addDoc } = window.firebaseTools;
+                            await addDoc(collection(window.db, "payments"), paymentData);
+                        } catch (e) {
+                            this.payments.push(paymentData);
+                            this.saveLocal();
+                        }
+                    } else {
+                        this.payments.push(paymentData);
+                        this.saveLocal();
+                    }
+
+                    alert(`Sold "${item.name}" successfully for ₹${finalSalePrice} and recorded to sales!`);
+                },
+
                 async addPayment() {
                     if (!this.newPayment.customer || !this.newPayment.amount) return;
                     const paymentData = {
@@ -459,7 +552,7 @@
                         this.saveLocal();
                     }
 
-                    this.newPayment = { customer: '', amount: '', cost: '', method: 'UPI / Online' };
+                    this.newPayment = { customer: '', amount: '', cost: '', method: 'Cash' };
                 },
 
                 async deletePayment(id) {
