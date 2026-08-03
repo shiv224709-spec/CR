@@ -13,7 +13,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // TODO: Replace these with your Firebase project details to enable real-time cross-device sync
+        // TODO: Replace these with your Firebase project details if you want cloud sync. 
+        // Leave them as placeholders to use robust local storage mode.
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -24,8 +25,12 @@
         };
 
         try {
-            const app = initializeApp(firebaseConfig);
-            window.db = getFirestore(app);
+            if (firebaseConfig.apiKey !== "YOUR_FIREBASE_API_KEY") {
+                const app = initializeApp(firebaseConfig);
+                window.db = getFirestore(app);
+            } else {
+                window.db = null;
+            }
         } catch (e) {
             window.db = null;
         }
@@ -87,7 +92,7 @@
 
             <div class="p-4 m-4 bg-rose-50 rounded-2xl border border-rose-100 text-center">
                 <p class="text-xs font-medium text-rose-800">ShivShakti Store Portal</p>
-                <span class="text-[10px] text-rose-600 font-bold block mt-1">Real-Time Sync Ready</span>
+                <span class="text-[10px] text-rose-600 font-bold block mt-1">Dashboard Active</span>
             </div>
         </aside>
 
@@ -97,7 +102,7 @@
             <header class="hidden md:flex bg-white border-b border-slate-200 px-8 py-4 justify-between items-center z-10 shadow-sm">
                 <div>
                     <h1 class="text-xl font-bold capitalize text-slate-800" x-text="currentTab === 'dashboard' ? 'Home Dashboard' : currentTab"></h1>
-                    <p class="text-xs text-slate-400">Live store synchronization manager</p>
+                    <p class="text-xs text-slate-400">Live store management system</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="text-right">
@@ -116,7 +121,7 @@
                         <div>
                             <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">Store Overview</span>
                             <h2 class="text-2xl md:text-3xl font-extrabold mt-3">Welcome to ShivShakti!</h2>
-                            <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Real-time updates active across all your logged-in devices instantly.</p>
+                            <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Manage inventory, monitor revenues, and check profits effortlessly.</p>
                         </div>
                         <div class="bg-white/10 p-4 rounded-2xl w-full md:w-auto text-left md:text-right">
                             <span class="text-xs text-rose-200 block">Total Net Profit</span>
@@ -157,7 +162,7 @@
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">Crochet Item Inventory</h2>
-                            <p class="text-xs text-slate-400">Changes save immediately across all devices</p>
+                            <p class="text-xs text-slate-400">Add and manage your crochet items</p>
                         </div>
                         <button @click="openModal = true" class="w-full sm:w-auto bg-rose-500 hover:bg-rose-600 text-white font-medium px-5 py-2.5 rounded-xl shadow-lg shadow-rose-100 transition flex items-center justify-center gap-2 text-sm">
                             Add New Item
@@ -353,13 +358,9 @@
                     if (window.db) {
                         try {
                             const { collection, onSnapshot } = window.firebaseTools;
-                            
-                            // Real-time listener for Inventory
                             onSnapshot(collection(window.db, "inventory"), (snapshot) => {
                                 this.inventory = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
                             });
-
-                            // Real-time listener for Payments
                             onSnapshot(collection(window.db, "payments"), (snapshot) => {
                                 this.payments = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
                             });
@@ -369,7 +370,7 @@
                         }
                     }
 
-                    // Local storage fallback initialized to empty zero states
+                    // Local storage fallback mode
                     this.inventory = JSON.parse(localStorage.getItem('shivshakti_inventory_zero')) || [];
                     this.payments = JSON.parse(localStorage.getItem('shivshakti_payments_zero')) || [];
                 },
@@ -380,7 +381,8 @@
                 },
 
                 async addItem() {
-                    if (!this.newItem.name || !this.newItem.price) return;
+                    if (!this.newItem.name || this.newItem.price === '' || this.newItem.price === null) return;
+                    
                     const itemData = {
                         id: Date.now(),
                         name: this.newItem.name,
@@ -391,8 +393,13 @@
                     };
 
                     if (window.db) {
-                        const { collection, addDoc } = window.firebaseTools;
-                        await addDoc(collection(window.db, "inventory"), itemData);
+                        try {
+                            const { collection, addDoc } = window.firebaseTools;
+                            await addDoc(collection(window.db, "inventory"), itemData);
+                        } catch (e) {
+                            this.inventory.push(itemData);
+                            this.saveLocal();
+                        }
                     } else {
                         this.inventory.push(itemData);
                         this.saveLocal();
@@ -405,23 +412,27 @@
                 async deleteItem(id) {
                     const item = this.inventory.find(i => i.id === id);
                     if (window.db && item && item.firebaseId) {
-                        const { doc, deleteDoc } = window.firebaseTools;
-                        await deleteDoc(doc(window.db, "inventory", item.firebaseId));
-                    } else {
-                        this.inventory = this.inventory.filter(i => i.id !== id);
-                        this.saveLocal();
+                        try {
+                            const { doc, deleteDoc } = window.firebaseTools;
+                            await deleteDoc(doc(window.db, "inventory", item.firebaseId));
+                            return;
+                        } catch(e) {}
                     }
+                    this.inventory = this.inventory.filter(i => i.id !== id);
+                    this.saveLocal();
                 },
 
                 async updateStock(item, amount) {
                     const newStock = Math.max(0, Number(item.stock || 0) + amount);
                     if (window.db && item.firebaseId) {
-                        const { doc, updateDoc } = window.firebaseTools;
-                        await updateDoc(doc(window.db, "inventory", item.firebaseId), { stock: newStock });
-                    } else {
-                        item.stock = newStock;
-                        this.saveLocal();
+                        try {
+                            const { doc, updateDoc } = window.firebaseTools;
+                            await updateDoc(doc(window.db, "inventory", item.firebaseId), { stock: newStock });
+                            return;
+                        } catch(e) {}
                     }
+                    item.stock = newStock;
+                    this.saveLocal();
                 },
 
                 async addPayment() {
@@ -436,8 +447,13 @@
                     };
 
                     if (window.db) {
-                        const { collection, addDoc } = window.firebaseTools;
-                        await addDoc(collection(window.db, "payments"), paymentData);
+                        try {
+                            const { collection, addDoc } = window.firebaseTools;
+                            await addDoc(collection(window.db, "payments"), paymentData);
+                        } catch (e) {
+                            this.payments.push(paymentData);
+                            this.saveLocal();
+                        }
                     } else {
                         this.payments.push(paymentData);
                         this.saveLocal();
@@ -449,12 +465,14 @@
                 async deletePayment(id) {
                     const p = this.payments.find(payment => payment.id === id);
                     if (window.db && p && p.firebaseId) {
-                        const { doc, deleteDoc } = window.firebaseTools;
-                        await deleteDoc(doc(window.db, "payments", p.firebaseId));
-                    } else {
-                        this.payments = this.payments.filter(payment => payment.id !== id);
-                        this.saveLocal();
+                        try {
+                            const { doc, deleteDoc } = window.firebaseTools;
+                            await deleteDoc(doc(window.db, "payments", p.firebaseId));
+                            return;
+                        } catch(e) {}
                     }
+                    this.payments = this.payments.filter(payment => payment.id !== id);
+                    this.saveLocal();
                 },
 
                 get totalRevenue() {
