@@ -908,8 +908,7 @@
 
                     this.payments.forEach(p => {
                         const d = p.date || today;
-                        // Exclude today so "Today's Orders" stays live on the main dashboard, 
-                        // while past days show up in the archived Daily Ledger tab.
+                        // Include any past dates in the Ledger archive
                         if (d !== today) {
                             if (!map[d]) {
                                 map[d] = { dateStr: d, orders: [], totalAmount: 0 };
@@ -919,7 +918,6 @@
                         }
                     });
 
-                    // Sort by date descending (newest past days first)
                     return Object.values(map).sort((a, b) => new Date(b.dateStr) - new Date(a.dateStr));
                 },
 
