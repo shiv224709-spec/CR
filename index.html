@@ -293,7 +293,7 @@
                                             <td class="p-4 font-bold text-emerald-600" x-text="`+₹${(Number(payment.amount || 0) - Number(payment.cost || 0)).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
                                             <td class="p-4 text-slate-400 text-xs" x-text="payment.date"></td>
                                             <td class="p-4 text-right">
-                                                <button @click="deletePayment(payment.docId)" class="text-rose-500 hover:text-rose-700 font-medium text-xs cursor-pointer">Remove</button>
+                                                <button @click="deletePayment(payment)" class="text-rose-500 hover:text-rose-700 font-medium text-xs cursor-pointer">Remove</button>
                                             </td>
                                         </tr>
                                     </template>
@@ -560,7 +560,8 @@
                         amount: finalSalePrice,
                         cost: Number(item.costPrice || 0),
                         method: selectedMethod,
-                        date: new Date().toISOString().split('T')[0]
+                        date: new Date().toISOString().split('T')[0],
+                        matchedItemName: item.name // Saved to help restore stock if deleted later
                     };
 
                     try {
@@ -593,9 +594,17 @@
                     }
                 },
 
-                async deletePayment(docId) {
+                async deletePayment(payment) {
                     try {
-                        await window.deleteDoc(window.doc(window.db, "payments", docId));
+                        // If this payment came from a POS sale, find the matching item name and return 1 stock
+                        if (payment.matchedItemName) {
+                            const foundItem = this.inventory.find(i => i.name.toLowerCase() === payment.matchedItemName.toLowerCase());
+                            if (foundItem) {
+                                await this.updateStock(foundItem, 1);
+                            }
+                        }
+
+                        await window.deleteDoc(window.doc(window.db, "payments", payment.docId));
                     } catch (e) {
                         alert("Error deleting payment.");
                     }
