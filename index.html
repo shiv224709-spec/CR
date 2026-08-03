@@ -8,13 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Firebase SDKs for Cloud Sync across devices -->
+    <!-- Firebase SDKs for Real-Time Cloud Sync -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Optional: Replace these with your Firebase details to sync across devices, 
-        // or leave them to run locally on your browser.
+        // TODO: Replace these with your Firebase project details to enable real-time cross-device sync
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -28,11 +27,10 @@
             const app = initializeApp(firebaseConfig);
             window.db = getFirestore(app);
         } catch (e) {
-            // Fallback to local storage mode if firebase isn't configured yet
             window.db = null;
         }
 
-        window.firebaseTools = { collection, getDocs, addDoc, deleteDoc, doc, updateDoc };
+        window.firebaseTools = { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot };
     </script>
     <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -58,14 +56,11 @@
         <!-- Mobile Navigation Drawer Overlay -->
         <div x-show="mobileMenuOpen" class="fixed inset-0 bg-slate-900/40 z-30 md:hidden" @click="mobileMenuOpen = false"></div>
 
-        <!-- Left-Hand Sidebar (Responsive Drawer on Mobile) -->
+        <!-- Left-Hand Sidebar -->
         <aside :class="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed md:translate-x-0 inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm transition-transform duration-300 ease-in-out md:static">
-            <!-- Brand Logo Area -->
             <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-rose-100">
-                        SC
-                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-rose-100">SC</div>
                     <div>
                         <h2 class="font-bold text-slate-900 leading-tight">ShivShakti</h2>
                         <p class="text-xs text-rose-500 font-semibold tracking-wider uppercase">Crochet Store</p>
@@ -77,37 +72,32 @@
             <!-- Navigation Links -->
             <nav class="mt-6 flex-1 space-y-1.5 px-4">
                 <button @click="currentTab = 'dashboard'; mobileMenuOpen = false" :class="currentTab === 'dashboard' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Home / Dashboard
                 </button>
                 <button @click="currentTab = 'inventory'; mobileMenuOpen = false" :class="currentTab === 'inventory' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                     Inventory & Stock
                 </button>
                 <button @click="currentTab = 'payments'; mobileMenuOpen = false" :class="currentTab === 'payments' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     Payments & Sales
                 </button>
                 <button @click="currentTab = 'profit'; mobileMenuOpen = false" :class="currentTab === 'profit' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     Profit & Analytics
                 </button>
             </nav>
 
             <div class="p-4 m-4 bg-rose-50 rounded-2xl border border-rose-100 text-center">
                 <p class="text-xs font-medium text-rose-800">ShivShakti Store Portal</p>
-                <span class="text-[10px] text-rose-600 font-bold block mt-1">Ready to manage orders</span>
+                <span class="text-[10px] text-rose-600 font-bold block mt-1">Real-Time Sync Ready</span>
             </div>
         </aside>
 
         <!-- Main Content Area -->
         <main class="flex-1 flex flex-col overflow-y-auto">
             
-            <!-- Top Header -->
             <header class="hidden md:flex bg-white border-b border-slate-200 px-8 py-4 justify-between items-center z-10 shadow-sm">
                 <div>
                     <h1 class="text-xl font-bold capitalize text-slate-800" x-text="currentTab === 'dashboard' ? 'Home Dashboard' : currentTab"></h1>
-                    <p class="text-xs text-slate-400">Welcome back to your store manager</p>
+                    <p class="text-xs text-slate-400">Live store synchronization manager</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="text-right">
@@ -118,16 +108,15 @@
                 </div>
             </header>
 
-            <!-- Dynamic Views -->
             <div class="p-4 md:p-8 max-w-7xl mx-auto w-full space-y-6">
 
-                <!-- 1. DASHBOARD / HOME VIEW -->
+                <!-- 1. DASHBOARD VIEW -->
                 <div x-show="currentTab === 'dashboard'" class="space-y-6">
                     <div class="bg-gradient-to-r from-rose-500 to-pink-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-rose-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">Store Overview</span>
                             <h2 class="text-2xl md:text-3xl font-extrabold mt-3">Welcome to ShivShakti!</h2>
-                            <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Track your handmade crochet inventory, net profit margins, and earnings instantly.</p>
+                            <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Real-time updates active across all your logged-in devices instantly.</p>
                         </div>
                         <div class="bg-white/10 p-4 rounded-2xl w-full md:w-auto text-left md:text-right">
                             <span class="text-xs text-rose-200 block">Total Net Profit</span>
@@ -135,15 +124,11 @@
                         </div>
                     </div>
 
-                    <!-- Metrics Cards -->
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                         <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                             <div>
                                 <p class="text-[10px] md:text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Products</p>
                                 <h3 class="text-2xl md:text-3xl font-bold text-slate-900 mt-1" x-text="inventory.length"></h3>
-                            </div>
-                            <div class="p-2.5 md:p-3 bg-rose-50 text-rose-600 rounded-2xl">
-                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                             </div>
                         </div>
                         <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
@@ -151,17 +136,11 @@
                                 <p class="text-[10px] md:text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Sales</p>
                                 <h3 class="text-xl md:text-3xl font-bold text-slate-900 mt-1 truncate" x-text="`₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 0})}`"></h3>
                             </div>
-                            <div class="p-2.5 md:p-3 bg-blue-50 text-blue-600 rounded-2xl">
-                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
-                            </div>
                         </div>
                         <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                             <div>
                                 <p class="text-[10px] md:text-xs text-slate-400 font-semibold uppercase tracking-wider">Net Profit</p>
                                 <h3 class="text-xl md:text-3xl font-bold text-emerald-600 mt-1 truncate" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 0})}`"></h3>
-                            </div>
-                            <div class="p-2.5 md:p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
-                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
                         </div>
                         <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
@@ -169,22 +148,18 @@
                                 <p class="text-[10px] md:text-xs text-slate-400 font-semibold uppercase tracking-wider">Low Stock</p>
                                 <h3 class="text-2xl md:text-3xl font-bold text-amber-600 mt-1" x-text="lowStockCount"></h3>
                             </div>
-                            <div class="p-2.5 md:p-3 bg-amber-50 text-amber-600 rounded-2xl">
-                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. INVENTORY & STOCK VIEW -->
+                <!-- 2. INVENTORY VIEW -->
                 <div x-show="currentTab === 'inventory'" class="space-y-6">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-slate-800">Crochet Item Inventory</h2>
-                            <p class="text-xs text-slate-400">Manage your handmade creations, material costs, and pricing</p>
+                            <p class="text-xs text-slate-400">Changes save immediately across all devices</p>
                         </div>
                         <button @click="openModal = true" class="w-full sm:w-auto bg-rose-500 hover:bg-rose-600 text-white font-medium px-5 py-2.5 rounded-xl shadow-lg shadow-rose-100 transition flex items-center justify-center gap-2 text-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                             Add New Item
                         </button>
                     </div>
@@ -207,8 +182,8 @@
                                     <tr>
                                         <td class="p-4 font-semibold text-slate-900" x-text="item.name"></td>
                                         <td class="p-4 text-slate-500" x-text="item.category"></td>
-                                        <td class="p-4 text-slate-500" x-text="`₹${item.costPrice.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
-                                        <td class="p-4 text-slate-900 font-bold" x-text="`₹${item.price.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
+                                        <td class="p-4 text-slate-500" x-text="`₹${Number(item.costPrice || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
+                                        <td class="p-4 text-slate-900 font-bold" x-text="`₹${Number(item.price || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
                                         <td class="p-4">
                                             <div class="flex items-center gap-2">
                                                 <button @click="updateStock(item, -1)" class="w-7 h-7 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold flex items-center justify-center text-slate-600">-</button>
@@ -224,6 +199,9 @@
                                         </td>
                                     </tr>
                                 </template>
+                                <tr x-show="inventory.length === 0">
+                                    <td colspan="7" class="p-8 text-center text-slate-400 text-sm">No items found. Add your first product!</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -233,7 +211,7 @@
                 <div x-show="currentTab === 'payments'" class="space-y-6">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">Payments & Orders</h2>
-                        <p class="text-xs text-slate-400">Record customer payouts and view payment histories</p>
+                        <p class="text-xs text-slate-400">Record customer payouts</p>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -241,26 +219,26 @@
                             <h3 class="font-bold text-slate-800 text-base">Record Payment</h3>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Customer Name</label>
-                                <input type="text" x-model="newPayment.customer" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 outline-none text-sm" placeholder="R Priya">
+                                <input type="text" x-model="newPayment.customer" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="Customer Name">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Amount (₹)</label>
-                                <input type="number" x-model.number="newPayment.amount" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 outline-none text-sm" placeholder="3500">
+                                <input type="number" x-model.number="newPayment.amount" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="0">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Estimated Cost / Material Expense (₹)</label>
-                                <input type="number" x-model.number="newPayment.cost" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 outline-none text-sm" placeholder="1000">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Estimated Cost (₹)</label>
+                                <input type="number" x-model.number="newPayment.cost" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="0">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Payment Method</label>
-                                <select x-model="newPayment.method" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 outline-none text-sm">
+                                <select x-model="newPayment.method" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm">
                                     <option value="UPI / Online">UPI / Online</option>
                                     <option value="Credit Card">Credit Card</option>
                                     <option value="Cash on Delivery">Cash on Delivery</option>
                                     <option value="Bank Transfer">Bank Transfer</option>
                                 </select>
                             </div>
-                            <button @click="addPayment" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-rose-100 transition text-sm">Save Payment</button>
+                            <button @click="addPayment" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-3 rounded-xl transition text-sm">Save Payment</button>
                         </div>
 
                         <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
@@ -279,15 +257,18 @@
                                     <template x-for="payment in payments" :key="payment.id">
                                         <tr>
                                             <td class="p-4 font-semibold text-slate-900" x-text="payment.customer"></td>
-                                            <td class="p-4 font-bold text-slate-700" x-text="`₹${payment.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
-                                            <td class="p-4 text-slate-400" x-text="`₹${payment.cost.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
-                                            <td class="p-4 font-bold text-emerald-600" x-text="`+₹${(payment.amount - payment.cost).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
+                                            <td class="p-4 font-bold text-slate-700" x-text="`₹${Number(payment.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
+                                            <td class="p-4 text-slate-400" x-text="`₹${Number(payment.cost || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
+                                            <td class="p-4 font-bold text-emerald-600" x-text="`+₹${(Number(payment.amount || 0) - Number(payment.cost || 0)).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
                                             <td class="p-4 text-slate-400 text-xs" x-text="payment.date"></td>
                                             <td class="p-4 text-right">
                                                 <button @click="deletePayment(payment.id)" class="text-rose-500 hover:text-rose-700 font-medium text-xs">Remove</button>
                                             </td>
                                         </tr>
                                     </template>
+                                    <tr x-show="payments.length === 0">
+                                        <td colspan="6" class="p-8 text-center text-slate-400 text-sm">No payment records found.</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -298,52 +279,21 @@
                 <div x-show="currentTab === 'profit'" class="space-y-6">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">Profit & Financial Analytics</h2>
-                        <p class="text-xs text-slate-400">Get a breakdown of total earnings, material expenses, and overall profit</p>
+                        <p class="text-xs text-slate-400">Total earnings and expense summaries</p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-2">
                             <span class="text-xs font-semibold text-slate-400 uppercase">Gross Revenue</span>
                             <h3 class="text-3xl font-black text-slate-900" x-text="`₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
-                            <p class="text-xs text-slate-400">Total money collected from sales</p>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-2">
-                            <span class="text-xs font-semibold text-slate-400 uppercase">Total Material Expenses</span>
+                            <span class="text-xs font-semibold text-slate-400 uppercase">Total Expenses</span>
                             <h3 class="text-3xl font-black text-rose-500" x-text="`₹${totalCost.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
-                            <p class="text-xs text-slate-400">Total money spent on yarn and supplies</p>
                         </div>
                         <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-2xl shadow-lg text-white space-y-2">
                             <span class="text-xs font-semibold text-emerald-100 uppercase">Net Profit Earned</span>
                             <h3 class="text-3xl font-black" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
-                            <p class="text-xs text-emerald-100">Your actual take-home earnings</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-                        <h3 class="font-bold text-slate-800 text-base">Order Profit Breakdown</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse min-w-[500px]">
-                                <thead>
-                                    <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                        <th class="p-3">Customer</th>
-                                        <th class="p-3">Sale Amount</th>
-                                        <th class="p-3">Expense</th>
-                                        <th class="p-3">Net Profit</th>
-                                        <th class="p-3">Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 text-sm">
-                                    <template x-for="p in payments" :key="p.id">
-                                        <tr>
-                                            <td class="p-3 font-semibold text-slate-800" x-text="p.customer"></td>
-                                            <td class="p-3 text-slate-600" x-text="`₹${p.amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
-                                            <td class="p-3 text-rose-500" x-text="`-₹${p.cost.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
-                                            <td class="p-3 font-bold text-emerald-600" x-text="`+₹${(p.amount - p.cost).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
-                                            <td class="p-3 text-slate-400 text-xs" x-text="p.date"></td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 </div>
@@ -359,25 +309,25 @@
             <div class="space-y-4 text-sm">
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Item Name</label>
-                    <input type="text" x-model="newItem.name" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="Handmade Crochet Bouquet">
+                    <input type="text" x-model="newItem.name" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="Item Name">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Category</label>
-                    <input type="text" x-model="newItem.category" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="Flowers / Apparel">
+                    <input type="text" x-model="newItem.category" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="Category">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Cost Price (₹)</label>
-                        <input type="number" x-model.number="newItem.costPrice" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="800">
+                        <input type="number" x-model.number="newItem.costPrice" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="0">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Selling Price (₹)</label>
-                        <input type="number" x-model.number="newItem.price" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="2500">
+                        <input type="number" x-model.number="newItem.price" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="0">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Initial Stock</label>
-                    <input type="number" x-model.number="newItem.stock" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="10">
+                    <input type="number" x-model.number="newItem.stock" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="0">
                 </div>
             </div>
             <div class="flex gap-4 pt-2">
@@ -399,38 +349,34 @@
                 newItem: { name: '', category: '', costPrice: '', price: '', stock: '' },
                 newPayment: { customer: '', amount: '', cost: '', method: 'UPI / Online' },
 
-                async init() {
-                    await this.loadData();
-                },
-
-                async loadData() {
+                init() {
                     if (window.db) {
                         try {
-                            const { collection, getDocs } = window.firebaseTools;
-                            const invSnap = await getDocs(collection(window.db, "inventory"));
-                            this.inventory = invSnap.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+                            const { collection, onSnapshot } = window.firebaseTools;
+                            
+                            // Real-time listener for Inventory
+                            onSnapshot(collection(window.db, "inventory"), (snapshot) => {
+                                this.inventory = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+                            });
 
-                            const paySnap = await getDocs(collection(window.db, "payments"));
-                            this.payments = paySnap.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+                            // Real-time listener for Payments
+                            onSnapshot(collection(window.db, "payments"), (snapshot) => {
+                                this.payments = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+                            });
                             return;
                         } catch (e) {
-                            console.log("Cloud database fallback to local storage");
+                            console.log("Firebase sync fallback");
                         }
                     }
-                    
-                    // Fallback storage if Firebase is not hooked up
-                    this.inventory = JSON.parse(localStorage.getItem('shivshakti_inventory_v3')) || [
-                        { id: 1, name: 'Crochet Tulip Bouquet', category: 'Flowers', costPrice: 800.00, price: 2500.00, stock: 5 },
-                        { id: 2, name: 'Handmade Crochet Sunflower', category: 'Flowers', costPrice: 400.00, price: 1200.00, stock: 2 }
-                    ];
-                    this.payments = JSON.parse(localStorage.getItem('shivshakti_payments_v3')) || [
-                        { id: 1, customer: 'Neha Sharma', amount: 2500.00, cost: 800.00, method: 'UPI / Online', date: '2026-06-01' }
-                    ];
+
+                    // Local storage fallback initialized to empty zero states
+                    this.inventory = JSON.parse(localStorage.getItem('shivshakti_inventory_zero')) || [];
+                    this.payments = JSON.parse(localStorage.getItem('shivshakti_payments_zero')) || [];
                 },
 
                 saveLocal() {
-                    localStorage.setItem('shivshakti_inventory_v3', JSON.stringify(this.inventory));
-                    localStorage.setItem('shivshakti_payments_v3', JSON.stringify(this.payments));
+                    localStorage.setItem('shivshakti_inventory_zero', JSON.stringify(this.inventory));
+                    localStorage.setItem('shivshakti_payments_zero', JSON.stringify(this.payments));
                 },
 
                 async addItem() {
@@ -439,15 +385,14 @@
                         id: Date.now(),
                         name: this.newItem.name,
                         category: this.newItem.category || 'General',
-                        costPrice: parseFloat(this.newItem.costPrice) || 0,
-                        price: parseFloat(this.newItem.price),
-                        stock: parseInt(this.newItem.stock) || 0
+                        costPrice: Number(this.newItem.costPrice) || 0,
+                        price: Number(this.newItem.price) || 0,
+                        stock: Number(this.newItem.stock) || 0
                     };
 
                     if (window.db) {
                         const { collection, addDoc } = window.firebaseTools;
-                        const docRef = await addDoc(collection(window.db, "inventory"), itemData);
-                        this.inventory.push({ firebaseId: docRef.id, ...itemData });
+                        await addDoc(collection(window.db, "inventory"), itemData);
                     } else {
                         this.inventory.push(itemData);
                         this.saveLocal();
@@ -462,18 +407,21 @@
                     if (window.db && item && item.firebaseId) {
                         const { doc, deleteDoc } = window.firebaseTools;
                         await deleteDoc(doc(window.db, "inventory", item.firebaseId));
+                    } else {
+                        this.inventory = this.inventory.filter(i => i.id !== id);
+                        this.saveLocal();
                     }
-                    this.inventory = this.inventory.filter(item => item.id !== id);
-                    this.saveLocal();
                 },
 
                 async updateStock(item, amount) {
-                    item.stock = Math.max(0, item.stock + amount);
+                    const newStock = Math.max(0, Number(item.stock || 0) + amount);
                     if (window.db && item.firebaseId) {
                         const { doc, updateDoc } = window.firebaseTools;
-                        await updateDoc(doc(window.db, "inventory", item.firebaseId), { stock: item.stock });
+                        await updateDoc(doc(window.db, "inventory", item.firebaseId), { stock: newStock });
+                    } else {
+                        item.stock = newStock;
+                        this.saveLocal();
                     }
-                    this.saveLocal();
                 },
 
                 async addPayment() {
@@ -481,16 +429,15 @@
                     const paymentData = {
                         id: Date.now(),
                         customer: this.newPayment.customer,
-                        amount: parseFloat(this.newPayment.amount),
-                        cost: parseFloat(this.newPayment.cost) || 0,
+                        amount: Number(this.newPayment.amount) || 0,
+                        cost: Number(this.newPayment.cost) || 0,
                         method: this.newPayment.method,
                         date: new Date().toISOString().split('T')[0]
                     };
 
                     if (window.db) {
                         const { collection, addDoc } = window.firebaseTools;
-                        const docRef = await addDoc(collection(window.db, "payments"), paymentData);
-                        this.payments.push({ firebaseId: docRef.id, ...paymentData });
+                        await addDoc(collection(window.db, "payments"), paymentData);
                     } else {
                         this.payments.push(paymentData);
                         this.saveLocal();
@@ -504,22 +451,23 @@
                     if (window.db && p && p.firebaseId) {
                         const { doc, deleteDoc } = window.firebaseTools;
                         await deleteDoc(doc(window.db, "payments", p.firebaseId));
+                    } else {
+                        this.payments = this.payments.filter(payment => payment.id !== id);
+                        this.saveLocal();
                     }
-                    this.payments = this.payments.filter(payment => payment.id !== id);
-                    this.saveLocal();
                 },
 
                 get totalRevenue() {
-                    return this.payments.reduce((acc, p) => acc + p.amount, 0);
+                    return this.payments.reduce((acc, p) => acc + Number(p.amount || 0), 0);
                 },
                 get totalCost() {
-                    return this.payments.reduce((acc, p) => acc + (p.cost || 0), 0);
+                    return this.payments.reduce((acc, p) => acc + Number(p.cost || 0), 0);
                 },
                 get totalNetProfit() {
                     return this.totalRevenue - this.totalCost;
                 },
                 get lowStockCount() {
-                    return this.inventory.filter(item => item.stock <= 3).length;
+                    return this.inventory.filter(item => Number(item.stock || 0) <= 3).length;
                 }
             }
         }
