@@ -190,13 +190,19 @@
 
                 <!-- 3. STREET CART / POS TAB -->
                 <div x-show="currentTab === 'pos'" class="space-y-6">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-800">🛍️ Street Cart / Live Stall Sales</h2>
-                        <p class="text-xs text-slate-400">View your product images, adjust price for bargaining, choose payment mode, and sell instantly!</p>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">🛍️ Street Cart / Live Stall Sales</h2>
+                            <p class="text-xs text-slate-400">Search products, adjust price for bargaining, choose payment mode, and sell instantly!</p>
+                        </div>
+                        <!-- Search Bar Input -->
+                        <div class="w-full sm:w-72">
+                            <input type="text" x-model="posSearchQuery" placeholder="🔍 Search products or category..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-xs bg-white shadow-sm focus:border-rose-500 transition">
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <template x-for="item in inventory" :key="'pos-'+item.docId">
+                        <template x-for="item in filteredPosItems" :key="'pos-'+item.docId">
                             <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between space-y-4">
                                 <div>
                                     <div class="relative w-full h-48 rounded-2xl overflow-hidden bg-slate-100 mb-4 border border-slate-100">
@@ -233,8 +239,8 @@
                         </template>
                     </div>
 
-                    <div x-show="inventory.length === 0" class="bg-white rounded-3xl p-12 text-center border border-slate-100">
-                        <p class="text-slate-400 text-sm">No products available in inventory. Go to **Inventory & Stock** to add items with images first!</p>
+                    <div x-show="filteredPosItems.length === 0" class="bg-white rounded-3xl p-12 text-center border border-slate-100">
+                        <p class="text-slate-400 text-sm" x-text="inventory.length === 0 ? 'No products available in inventory. Go to Inventory & Stock to add items first!' : 'No matching products found for your search.'"></p>
                     </div>
                 </div>
 
@@ -434,6 +440,7 @@
                 openModal: false,
                 inventory: [],
                 payments: [],
+                posSearchQuery: '',
                 newItem: { name: '', category: '', image: '', costPrice: '', price: '', stock: '' },
                 newPayment: { customer: '', amount: '', cost: '', method: 'Cash' },
 
@@ -615,6 +622,15 @@
                     const text = `Hello ${payment.customer}! 🌸 Thank you for shopping with ShivShakti Crochet. Here is your receipt:\n\nAmount Paid: ₹${payment.amount}\nPayment Mode: ${payment.method}\nDate: ${payment.date}\n\nWe hope you love your handmade crochet item! ✨`;
                     const encoded = encodeURIComponent(text);
                     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+                },
+
+                get filteredPosItems() {
+                    if (!this.posSearchQuery.trim()) return this.inventory;
+                    const query = this.posSearchQuery.toLowerCase();
+                    return this.inventory.filter(item => 
+                        item.name.toLowerCase().includes(query) || 
+                        (item.category && item.category.toLowerCase().includes(query))
+                    );
                 },
 
                 get totalRevenue() {
