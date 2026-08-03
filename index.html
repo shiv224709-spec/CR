@@ -117,7 +117,7 @@
                         </div>
                     </div>
 
-                    <!-- TODAY'S LIVE EARNINGS BANNER (Platform Style) -->
+                    <!-- TODAY'S LIVE EARNINGS BANNER -->
                     <div class="bg-gradient-to-r from-rose-500 to-pink-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-rose-100 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                         <div class="md:col-span-2">
                             <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">Live Today Summary</span>
@@ -264,7 +264,6 @@
                             <h2 class="text-xl font-bold text-slate-800">🛍️ Street Cart / Live Stall Sales</h2>
                             <p class="text-xs text-slate-400">Search products, adjust price for bargaining, choose payment mode, and sell instantly!</p>
                         </div>
-                        <!-- Search Bar Input -->
                         <div class="w-full sm:w-72">
                             <input type="text" x-model="posSearchQuery" placeholder="🔍 Search products or category..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-xs bg-white shadow-sm focus:border-rose-500 transition">
                         </div>
@@ -315,18 +314,11 @@
 
                 <!-- 4. DAILY SALES LEDGER (Archived Past Days) -->
                 <div x-show="currentTab === 'dailySales'" class="space-y-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-800">📅 Daily Sales Ledger & Archive</h2>
-                            <p class="text-xs text-slate-400">View past days' sales archived by date</p>
-                        </div>
-                        <!-- Quick fix button to assign test items to August 3 -->
-                        <button @click="assignTestItemsToAugust3()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer">
-                            📌 Set Existing Sales to 3 August
-                        </button>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">📅 Daily Sales Ledger & Archive</h2>
+                        <p class="text-xs text-slate-400">View past days' sales archived by date</p>
                     </div>
 
-                    <!-- Daily Ledger Accordion / Cards List -->
                     <div class="space-y-4">
                         <template x-for="dayData in dailyLedgerSummary" :key="dayData.dateStr">
                             <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
@@ -372,7 +364,7 @@
                         </template>
 
                         <div x-show="dailyLedgerSummary.length === 0" class="bg-white rounded-3xl p-12 text-center border border-slate-100">
-                            <p class="text-slate-400 text-sm">No archived past days yet. Click the "Set Existing Sales to 3 August" button above to move your 3 items to August 3!</p>
+                            <p class="text-slate-400 text-sm">No archived past days yet. Orders placed today will automatically move to the Daily Ledger after 12:00 AM!</p>
                         </div>
                     </div>
                 </div>
@@ -799,21 +791,6 @@
                         alert(`Sold "${item.name}" for ₹${finalSalePrice} via ${selectedMethod}!`);
                     } catch (e) {
                         alert("Error recording sale.");
-                    }
-                },
-
-                async assignTestItemsToAugust3() {
-                    try {
-                        for (let p of this.payments) {
-                            if (p.date === '2026-08-04') {
-                                await window.updateDoc(window.doc(window.db, "payments", p.docId), {
-                                    date: '2026-08-03'
-                                });
-                            }
-                        }
-                        alert("Successfully moved your recent orders to 3 August!");
-                    } catch (e) {
-                        alert("Error updating dates.");
                     }
                 },
 
