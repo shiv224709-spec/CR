@@ -46,7 +46,7 @@
             </div>
 
             <!-- Navigation Links -->
-            <nav class="mt-6 flex-1 space-y-1.5 px-4">
+            <nav class="mt-6 flex-1 space-y-1.5 px-4 overflow-y-auto">
                 <button @click="currentTab = 'dashboard'; mobileMenuOpen = false" :class="currentTab === 'dashboard' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm">
                     Home / Dashboard
                 </button>
@@ -65,8 +65,8 @@
             </nav>
 
             <div class="p-4 m-4 bg-rose-50 rounded-2xl border border-rose-100 text-center">
-                <p class="text-xs font-medium text-rose-800">ShivShakti Store Portal</p>
-                <span class="text-[10px] text-rose-600 font-bold block mt-1">Street Stall Ready</span>
+                <p class="text-xs font-medium text-rose-800">Cloud Live Sync Active</p>
+                <span class="text-[10px] text-rose-600 font-bold block mt-1">🔄 All Devices Connected</span>
             </div>
         </aside>
 
@@ -335,7 +335,7 @@
                     <input type="text" x-model="newItem.category" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="e.g. Flowers">
                 </div>
 
-                <!-- Image Option (Upload from phone/gallery OR Web Link) -->
+                <!-- Image Option -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Product Image</label>
                     
@@ -383,6 +383,33 @@
         </div>
     </div>
 
+    <!-- Firebase SDK Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBblFhfCt4NJrO05WNeINGSK83km7iJUIQ",
+            authDomain: "shihv-f5d43.firebaseapp.com",
+            projectId: "shihv-f5d43",
+            storageBucket: "shihv-f5d43.firebasestorage.app",
+            messagingSenderId: "363312672863",
+            appId: "1:363312672863:web:842521ce9c470cb2662bea",
+            measurementId: "G-ZM19YR5YX7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.collection = collection;
+        window.getDocs = getDocs;
+        window.addDoc = addDoc;
+        window.deleteDoc = deleteDoc;
+        window.doc = doc;
+        window.updateDoc = updateDoc;
+    </script>
+
     <!-- Script Application Logic -->
     <script>
         function businessApp() {
@@ -395,14 +422,30 @@
                 newItem: { name: '', category: '', image: '', costPrice: '', price: '', stock: '' },
                 newPayment: { customer: '', amount: '', cost: '', method: 'Cash' },
 
-                init() {
-                    // Load straight from local storage safely
-                    let localInv = JSON.parse(localStorage.getItem('shivshakti_inventory_zero')) || [];
-                    this.inventory = localInv.map(item => ({ ...item, bargainPrice: item.bargainPrice || item.price }));
-                    this.payments = JSON.parse(localStorage.getItem('shivshakti_payments_zero')) || [];
+                async init() {
+                    this.fetchData();
                 },
 
-                // Compress uploaded photos automatically so they never fill up browser storage limits
+                async fetchData() {
+                    try {
+                        const invSnapshot = await window.getDocs(window.collection(window.db, "inventory"));
+                        this.inventory = invSnapshot.docs.map(docSnap => ({
+                            docId: docSnap.id,
+                            ...docSnap.data(),
+                            bargainPrice: docSnap.data().price
+                        }));
+
+                        const paySnapshot = await window.getDocs(window.collection(window.db, "payments"));
+                        this.payments = paySnapshot.docs.map(docSnap => ({
+                            docId: docSnap.id,
+                            ...docSnap.data()
+                        }));
+                    } catch (err) {
+                        console.log("Waiting for Firebase connection...", err);
+                        setTimeout(() => this.fetchData(), 1500);
+                    }
+                },
+
                 handleImageUpload(event) {
                     const file = event.target.files[0];
                     if (!file) return;
@@ -434,7 +477,6 @@
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            // Compress image quality to 0.7 to avoid storage limits
                             this.newItem.image = canvas.toDataURL('image/jpeg', 0.7);
                         };
                         img.src = e.target.result;
@@ -442,16 +484,7 @@
                     reader.readAsDataURL(file);
                 },
 
-                saveLocal() {
-                    try {
-                        localStorage.setItem('shivshakti_inventory_zero', JSON.stringify(this.inventory));
-                        localStorage.setItem('shivshakti_payments_zero', JSON.stringify(this.payments));
-                    } catch (e) {
-                        alert("Storage limit reached! Try using smaller image file sizes or image links.");
-                    }
-                },
-
-                addItem() {
+                async addItem() {
                     if (!this.newItem.name || this.newItem.price === '' || this.newItem.price === null) {
                         alert("Please provide at least a Product Name and Selling Price.");
                         return;
@@ -464,29 +497,44 @@
                         image: this.newItem.image || '',
                         costPrice: Number(this.newItem.costPrice) || 0,
                         price: Number(this.newItem.price) || 0,
-                        stock: Number(this.newItem.stock) || 0,
-                        bargainPrice: Number(this.newItem.price) || 0
+                        stock: Number(this.newItem.stock) || 0
                     };
 
-                    this.inventory.push(itemData);
-                    this.saveLocal();
-
-                    // Reset fields and instantly force modal box to close
-                    this.newItem = { name: '', category: '', image: '', costPrice: '', price: '', stock: '' };
-                    this.openModal = false;
+                    try {
+                        const docRef = await window.addDoc(window.collection(window.db, "inventory"), itemData);
+                        this.inventory.push({ docId: docRef.id, ...itemData, bargainPrice: itemData.price });
+                        
+                        this.newItem = { name: '', category: '', image: '', costPrice: '', price: '', stock: '' };
+                        this.openModal = false;
+                    } catch (e) {
+                        alert("Error saving product to cloud. Check Firestore database setup.");
+                    }
                 },
 
-                deleteItem(id) {
-                    this.inventory = this.inventory.filter(i => i.id !== id);
-                    this.saveLocal();
+                async deleteItem(id) {
+                    const item = this.inventory.find(i => i.id === id);
+                    if (!item) return;
+
+                    try {
+                        await window.deleteDoc(window.doc(window.db, "inventory", item.docId));
+                        this.inventory = this.inventory.filter(i => i.id !== id);
+                    } catch (e) {
+                        alert("Error deleting item from cloud.");
+                    }
                 },
 
-                updateStock(item, amount) {
+                async updateStock(item, amount) {
                     item.stock = Math.max(0, Number(item.stock || 0) + amount);
-                    this.saveLocal();
+                    try {
+                        await window.updateDoc(window.doc(window.db, "inventory", item.docId), {
+                            stock: item.stock
+                        });
+                    } catch (e) {
+                        alert("Error updating stock.");
+                    }
                 },
 
-                sellItemOnSpot(item) {
+                async sellItemOnSpot(item) {
                     if (Number(item.stock || 0) <= 0) {
                         alert("Item is out of stock!");
                         return;
@@ -494,7 +542,7 @@
 
                     const finalSalePrice = Number(item.bargainPrice !== undefined ? item.bargainPrice : item.price);
 
-                    this.updateStock(item, -1);
+                    await this.updateStock(item, -1);
 
                     const paymentData = {
                         id: Date.now(),
@@ -505,13 +553,16 @@
                         date: new Date().toISOString().split('T')[0]
                     };
 
-                    this.payments.push(paymentData);
-                    this.saveLocal();
-
-                    alert(`Sold "${item.name}" successfully for ₹${finalSalePrice} and recorded to sales!`);
+                    try {
+                        const docRef = await window.addDoc(window.collection(window.db, "payments"), paymentData);
+                        this.payments.push({ docId: docRef.id, ...paymentData });
+                        alert(`Sold "${item.name}" successfully for ₹${finalSalePrice} and recorded to sales!`);
+                    } catch (e) {
+                        alert("Error recording sale to cloud.");
+                    }
                 },
 
-                addPayment() {
+                async addPayment() {
                     if (!this.newPayment.customer || !this.newPayment.amount) return;
                     const paymentData = {
                         id: Date.now(),
@@ -522,14 +573,25 @@
                         date: new Date().toISOString().split('T')[0]
                     };
 
-                    this.payments.push(paymentData);
-                    this.saveLocal();
-                    this.newPayment = { customer: '', amount: '', cost: '', method: 'Cash' };
+                    try {
+                        const docRef = await window.addDoc(window.collection(window.db, "payments"), paymentData);
+                        this.payments.push({ docId: docRef.id, ...paymentData });
+                        this.newPayment = { customer: '', amount: '', cost: '', method: 'Cash' };
+                    } catch (e) {
+                        alert("Error saving payment.");
+                    }
                 },
 
-                deletePayment(id) {
-                    this.payments = this.payments.filter(payment => payment.id !== id);
-                    this.saveLocal();
+                async deletePayment(id) {
+                    const payment = this.payments.find(p => p.id === id);
+                    if (!payment) return;
+
+                    try {
+                        await window.deleteDoc(window.doc(window.db, "payments", payment.docId));
+                        this.payments = this.payments.filter(p => p.id !== id);
+                    } catch (e) {
+                        alert("Error deleting payment.");
+                    }
                 },
 
                 get totalRevenue() {
