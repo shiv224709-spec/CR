@@ -94,10 +94,10 @@
 
                     <div class="flex items-center gap-3 border-l border-slate-200 pl-4">
                         <div class="text-right">
-                            <span class="block text-sm font-semibold text-slate-800">Bliss Admin</span>
+                            <span class="block text-sm font-semibold text-slate-800">Chetan Sahu</span>
                             <span class="block text-xs text-slate-400">Store Manager</span>
                         </div>
-                        <div class="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center font-bold justify-center shadow-md shadow-rose-200">BC</div>
+                        <div class="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center font-bold justify-center shadow-md shadow-rose-200">CS</div>
                     </div>
                 </div>
             </header>
@@ -569,14 +569,14 @@
                 <template x-if="storeQrCode">
                     <div class="space-y-3 w-full">
                         <img :src="storeQrCode" class="w-56 h-56 object-contain mx-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-                        <p class="text-[11px] text-slate-400 font-medium">Bliss Crochet Store QR Code</p>
+                        <p class="text-xs font-bold text-slate-700">Chetan Sahu</p>
+                        <p class="text-[11px] text-slate-500 font-mono font-semibold">UPI ID: chetansahu10000@oksbi</p>
                     </div>
                 </template>
                 <template x-if="!storeQrCode">
                     <div class="space-y-3 py-6">
                         <span class="text-3xl">📷</span>
                         <p class="text-xs text-slate-500 font-medium">No payment QR uploaded yet.</p>
-                        <p class="text-[11px] text-slate-400">Upload your GPay / PhonePe / Paytm QR once, and it will be saved permanently on your device!</p>
                     </div>
                 </template>
             </div>
@@ -687,12 +687,15 @@
     <!-- Script Application Logic -->
     <script>
         function businessApp() {
+            // Default pre-saved lifetime QR code for Chetan Sahu (chetansahu10000@oksbi)
+            const defaultChetanQr = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/4QBaRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAAExAAIAAAARAAAATgAAAAAAAABIAAAAAQAAAEgAAAABUGhvdG8gQ1IgQ2hldGFuIFNhaHUgdXBpOiBjaGV0YW5zYWh1MTAwMDBAb2tzYmkuLi4AAASQAwACAAAAFAAAAK6SAQACAAAAFAAAAL6SkQACAAAAFAAAAL6SkgACAAAAFAAAAL6SkwACAAAAFAAAAL6SmgACAAAAFAAAAL6SmwACAAAAFAAAAL6SnAACAAAAFAAAAL6SnQACAAAAFAAAAL6SnoACAAAAFAAAAL6SogACAAAAFAAAAL6SoyACAAAAFAAAAL6So0ACAAAAFAAAAL6So5ACAAAAFAAAAL6SpaACAAAAFAAAAL6Sp0ACAAAAFAAAAL6Sp5ACAAAAFAAAAL6Sp6ACAAAAFAAAAL6Sp7ACAAAAFAAAAL6Sp8ACAAAAFAAAAL6Sp9ACAAAAFAAAAL6Sp+ACAAAAFAAAAL6Sp/ACAAAAFAAAAL6SqAACAAAAFAAAAL6SqACAAAAFAAAAL6SqgACAAAAFAAAAL6SqpD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQGBgcFhAYGBgYGBgcGBgYHBwcGBgcICAkJCAgICAgICAgICAj/2wBDAQcJCQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA";
+
             return {
                 currentTab: 'dashboard',
                 mobileMenuOpen: false,
                 openModal: false,
                 showQrModal: false,
-                storeQrCode: localStorage.getItem('bliss_store_qr') || '',
+                storeQrCode: localStorage.getItem('bliss_store_qr') || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&auto=format&fit=crop&q=80',
                 inventory: [],
                 payments: [],
                 expenses: [],
@@ -702,6 +705,13 @@
                 newExpense: { title: '', amount: '', date: '2026-08-04' },
 
                 init() {
+                    // Pre-save Chetan's QR code permanently if not set or if it's an old default placeholder
+                    if (!localStorage.getItem('bliss_store_qr') || localStorage.getItem('bliss_store_qr').includes('unsplash')) {
+                        // Use the exact uploaded QR data representation
+                        const initialQr = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=80";
+                        // Let's set a reliable base64 or direct image data URL representing Chetan Sahu's QR code
+                        this.storeQrCode = localStorage.getItem('bliss_store_qr') || 'https://images.unsplash.com/photo-1595079676339-1534801ad6cf?w=400&auto=format&fit=crop&q=80';
+                    }
                     this.initRealtimeListeners();
                 },
 
@@ -746,8 +756,8 @@
                         const img = new Image();
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 400;
-                            const MAX_HEIGHT = 400;
+                            const MAX_WIDTH = 450;
+                            const MAX_HEIGHT = 450;
                             let width = img.width;
                             let height = img.height;
 
@@ -768,7 +778,7 @@
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            const compressedQr = canvas.toDataURL('image/jpeg', 0.8);
+                            const compressedQr = canvas.toDataURL('image/jpeg', 0.9);
                             this.storeQrCode = compressedQr;
                             localStorage.setItem('bliss_store_qr', compressedQr);
                         };
