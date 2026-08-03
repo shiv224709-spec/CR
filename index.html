@@ -24,9 +24,14 @@
                 <div class="w-8 h-8 rounded-lg bg-rose-500 text-white flex items-center justify-center font-bold text-sm shadow-md">BC</div>
                 <h2 class="font-bold text-slate-900 text-sm">Bliss Crochet</h2>
             </div>
-            <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
+            <div class="flex items-center gap-2">
+                <button @click="showQrModal = true" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 cursor-pointer border border-rose-200">
+                    <span>📱 Show QR</span>
+                </button>
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
         </div>
 
         <!-- Mobile Navigation Drawer Overlay -->
@@ -81,12 +86,19 @@
                     <h1 class="text-xl font-bold capitalize text-slate-800" x-text="currentTab === 'dashboard' ? 'Home Dashboard' : (currentTab === 'pos' ? 'Street Cart / POS' : (currentTab === 'dailySales' ? 'Daily Sales Ledger' : currentTab))"></h1>
                     <p class="text-xs text-slate-400">Live store management system</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="text-right">
-                        <span class="block text-sm font-semibold text-slate-800">Bliss Admin</span>
-                        <span class="block text-xs text-slate-400">Store Manager</span>
+                <div class="flex items-center gap-4">
+                    <!-- Permanent Show Payment QR Button -->
+                    <button @click="showQrModal = true" class="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white font-bold px-4 py-2 rounded-xl shadow-md shadow-rose-100 transition text-sm flex items-center gap-2 cursor-pointer">
+                        <span>📱 Show Payment QR</span>
+                    </button>
+
+                    <div class="flex items-center gap-3 border-l border-slate-200 pl-4">
+                        <div class="text-right">
+                            <span class="block text-sm font-semibold text-slate-800">Bliss Admin</span>
+                            <span class="block text-xs text-slate-400">Store Manager</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center font-bold justify-center shadow-md shadow-rose-200">BC</div>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center font-bold justify-center shadow-md shadow-rose-200">BC</div>
                 </div>
             </header>
 
@@ -544,6 +556,45 @@
         </main>
     </div>
 
+    <!-- Modal for Showing / Uploading Permanent Payment QR Code -->
+    <div x-show="showQrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 md:p-8 space-y-5 shadow-2xl m-4 text-center">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-900">Scan to Pay (UPI)</h3>
+                <button @click="showQrModal = false" class="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer">✕</button>
+            </div>
+
+            <!-- QR Code Display Box -->
+            <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[240px]">
+                <template x-if="storeQrCode">
+                    <div class="space-y-3 w-full">
+                        <img :src="storeQrCode" class="w-56 h-56 object-contain mx-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <p class="text-[11px] text-slate-400 font-medium">Bliss Crochet Store QR Code</p>
+                    </div>
+                </template>
+                <template x-if="!storeQrCode">
+                    <div class="space-y-3 py-6">
+                        <span class="text-3xl">📷</span>
+                        <p class="text-xs text-slate-500 font-medium">No payment QR uploaded yet.</p>
+                        <p class="text-[11px] text-slate-400">Upload your GPay / PhonePe / Paytm QR once, and it will be saved permanently on your device!</p>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Upload / Change QR Button -->
+            <div class="space-y-2">
+                <label class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-3 rounded-xl transition text-xs flex items-center justify-center gap-2 cursor-pointer border border-rose-200">
+                    <span>📁 <span x-text="storeQrCode ? 'Change QR Image' : 'Upload QR Image'"></span></span>
+                    <input type="file" accept="image/*" @change="handleQrUpload" class="hidden">
+                </label>
+
+                <template x-if="storeQrCode">
+                    <button @click="removeQrCode" class="text-rose-500 hover:text-rose-700 text-xs font-semibold pt-1 cursor-pointer">Remove QR</button>
+                </template>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for Adding Inventory Item -->
     <div x-show="openModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 space-y-5 shadow-2xl m-4 max-h-[90vh] overflow-y-auto">
@@ -640,6 +691,8 @@
                 currentTab: 'dashboard',
                 mobileMenuOpen: false,
                 openModal: false,
+                showQrModal: false,
+                storeQrCode: localStorage.getItem('bliss_store_qr') || '',
                 inventory: [],
                 payments: [],
                 expenses: [],
@@ -681,6 +734,53 @@
                         });
                     } catch (err) {
                         setTimeout(() => this.initRealtimeListeners(), 2000);
+                    }
+                },
+
+                handleQrUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 400;
+                            const MAX_HEIGHT = 400;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                                if (width > MAX_WIDTH) {
+                                    height *= MAX_WIDTH / width;
+                                    width = MAX_WIDTH;
+                                }
+                            } else {
+                                if (height > MAX_HEIGHT) {
+                                    width *= MAX_HEIGHT / height;
+                                    height = MAX_HEIGHT;
+                                }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            const compressedQr = canvas.toDataURL('image/jpeg', 0.8);
+                            this.storeQrCode = compressedQr;
+                            localStorage.setItem('bliss_store_qr', compressedQr);
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                },
+
+                removeQrCode() {
+                    if (confirm("Are you sure you want to remove your payment QR?")) {
+                        this.storeQrCode = '';
+                        localStorage.removeItem('bliss_store_qr');
                     }
                 },
 
