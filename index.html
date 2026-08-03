@@ -46,20 +46,26 @@
             </div>
 
             <!-- Navigation Links -->
-            <nav class="mt-6 flex-1 space-y-1.5 px-4 overflow-y-auto">
-                <button @click="currentTab = 'dashboard'; mobileMenuOpen = false" :class="currentTab === 'dashboard' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm cursor-pointer">
+            <nav class="mt-4 flex-1 space-y-1 px-4 overflow-y-auto">
+                <button @click="currentTab = 'dashboard'; mobileMenuOpen = false" :class="currentTab === 'dashboard' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
                     Home / Dashboard
                 </button>
-                <button @click="currentTab = 'inventory'; mobileMenuOpen = false" :class="currentTab === 'inventory' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm cursor-pointer">
+                <button @click="currentTab = 'inventory'; mobileMenuOpen = false" :class="currentTab === 'inventory' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
                     Inventory & Stock
                 </button>
-                <button @click="currentTab = 'pos'; mobileMenuOpen = false" :class="currentTab === 'pos' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm cursor-pointer">
+                <button @click="currentTab = 'pos'; mobileMenuOpen = false" :class="currentTab === 'pos' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
                     🛍️ Street Cart / POS
                 </button>
-                <button @click="currentTab = 'payments'; mobileMenuOpen = false" :class="currentTab === 'payments' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm cursor-pointer">
+                <button @click="currentTab = 'payments'; mobileMenuOpen = false" :class="currentTab === 'payments' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
                     Payments & Sales
                 </button>
-                <button @click="currentTab = 'profit'; mobileMenuOpen = false" :class="currentTab === 'profit' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition text-sm cursor-pointer">
+                <button @click="currentTab = 'orders'; mobileMenuOpen = false" :class="currentTab === 'orders' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
+                    📌 Custom Orders
+                </button>
+                <button @click="currentTab = 'expenses'; mobileMenuOpen = false" :class="currentTab === 'expenses' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
+                    🧶 Yarn & Materials
+                </button>
+                <button @click="currentTab = 'profit'; mobileMenuOpen = false" :class="currentTab === 'profit' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
                     Profit & Analytics
                 </button>
             </nav>
@@ -91,11 +97,19 @@
 
                 <!-- 1. DASHBOARD VIEW -->
                 <div x-show="currentTab === 'dashboard'" class="space-y-6">
+                    <!-- Low Stock Alert Banner -->
+                    <div x-show="lowStockItems.length > 0" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-amber-800">
+                        <span class="text-xl">⚠️</span>
+                        <div class="flex-1 text-xs md:text-sm font-medium">
+                            <span class="font-bold">Low Stock Warning:</span> <span x-text="lowStockItems.map(i => `${i.name} (${i.stock} left)`).join(', ')"></span> running low! Restock soon.
+                        </div>
+                    </div>
+
                     <div class="bg-gradient-to-r from-rose-500 to-pink-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-rose-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">Store Overview</span>
                             <h2 class="text-2xl md:text-3xl font-extrabold mt-3">Welcome to ShivShakti!</h2>
-                            <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Manage inventory, handle street bargains quickly, and check profits effortlessly.</p>
+                            <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Manage inventory, handle street bargains quickly, track custom orders, and check profits effortlessly.</p>
                         </div>
                         <div class="bg-white/10 p-4 rounded-2xl w-full md:w-auto text-left md:text-right">
                             <span class="text-xs text-rose-200 block">Total Net Profit</span>
@@ -124,8 +138,8 @@
                         </div>
                         <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                             <div>
-                                <p class="text-[10px] md:text-xs text-slate-400 font-semibold uppercase tracking-wider">Low Stock</p>
-                                <h3 class="text-2xl md:text-3xl font-bold text-amber-600 mt-1" x-text="lowStockCount"></h3>
+                                <p class="text-[10px] md:text-xs text-slate-400 font-semibold uppercase tracking-wider">Pending Orders</p>
+                                <h3 class="text-2xl md:text-3xl font-bold text-indigo-600 mt-1" x-text="orders.filter(o => o.status !== 'Completed').length"></h3>
                             </div>
                         </div>
                     </div>
@@ -240,7 +254,7 @@
                 <div x-show="currentTab === 'payments'" class="space-y-6">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">Payments & Orders</h2>
-                        <p class="text-xs text-slate-400">Record customer payouts</p>
+                        <p class="text-xs text-slate-400">Record customer payouts and share WhatsApp receipts</p>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -292,7 +306,8 @@
                                             </td>
                                             <td class="p-4 font-bold text-emerald-600" x-text="`+₹${(Number(payment.amount || 0) - Number(payment.cost || 0)).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
                                             <td class="p-4 text-slate-400 text-xs" x-text="payment.date"></td>
-                                            <td class="p-4 text-right">
+                                            <td class="p-4 text-right space-x-2">
+                                                <button @click="shareWhatsAppReceipt(payment)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium text-xs px-3 py-1.5 rounded-lg transition cursor-pointer">💬 WhatsApp</button>
                                                 <button @click="deletePayment(payment)" class="text-rose-500 hover:text-rose-700 font-medium text-xs cursor-pointer">Remove</button>
                                             </td>
                                         </tr>
@@ -306,25 +321,175 @@
                     </div>
                 </div>
 
-                <!-- 5. PROFIT & ANALYTICS VIEW -->
+                <!-- 5. CUSTOM ORDERS / PRE-BOOKINGS TAB -->
+                <div x-show="currentTab === 'orders'" class="space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">📌 Custom Orders & Pre-Bookings</h2>
+                            <p class="text-xs text-slate-400">Track special customer requests, deadlines, and advances</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-fit space-y-4">
+                            <h3 class="font-bold text-slate-800 text-base">Add New Custom Order</h3>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Customer Name</label>
+                                <input type="text" x-model="newOrder.customer" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="Client Name">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Item Description / Request</label>
+                                <input type="text" x-model="newOrder.description" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="e.g. Blue Tulip bouquet">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Total Price (₹)</label>
+                                    <input type="number" min="0" x-model.number="newOrder.total" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Advance Paid (₹)</label>
+                                    <input type="number" min="0" x-model.number="newOrder.advance" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="0">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Due Date</label>
+                                <input type="date" x-model="newOrder.dueDate" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm">
+                            </div>
+                            <button @click="addOrder" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-3 rounded-xl transition text-sm cursor-pointer">Save Custom Order</button>
+                        </div>
+
+                        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
+                            <table class="w-full text-left border-collapse min-w-[650px]">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="p-4">Customer</th>
+                                        <th class="p-4">Request</th>
+                                        <th class="p-4">Total / Advance</th>
+                                        <th class="p-4">Due Date</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm">
+                                    <template x-for="order in orders" :key="order.docId">
+                                        <tr>
+                                            <td class="p-4 font-semibold text-slate-900" x-text="order.customer"></td>
+                                            <td class="p-4 text-slate-600" x-text="order.description"></td>
+                                            <td class="p-4">
+                                                <span class="font-bold text-slate-950" x-text="`₹${order.total}`"></span>
+                                                <span class="block text-[11px] text-rose-500 font-semibold" x-text="`Adv: ₹${order.advance}`"></span>
+                                            </td>
+                                            <td class="p-4 text-slate-500 text-xs font-medium" x-text="order.dueDate"></td>
+                                            <td class="p-4">
+                                                <select @change="updateOrderStatus(order, $event.target.value)" class="text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200 outline-none" :class="order.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'">
+                                                    <option value="Pending" :selected="order.status === 'Pending'">Pending</option>
+                                                    <option value="In Progress" :selected="order.status === 'In Progress'">In Progress</option>
+                                                    <option value="Completed" :selected="order.status === 'Completed'">Completed</option>
+                                                </select>
+                                            </td>
+                                            <td class="p-4 text-right">
+                                                <button @click="deleteOrder(order.docId)" class="text-rose-500 hover:text-rose-700 font-medium text-xs cursor-pointer">Remove</button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="orders.length === 0">
+                                        <td colspan="6" class="p-8 text-center text-slate-400 text-sm">No custom orders recorded.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. YARN & MATERIAL EXPENSES TAB -->
+                <div x-show="currentTab === 'expenses'" class="space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">🧶 Yarn & Raw Material Expenses</h2>
+                            <p class="text-xs text-slate-400">Track overhead spending on yarn rolls, hooks, and packaging</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-fit space-y-4">
+                            <h3 class="font-bold text-slate-800 text-base">Add Material Expense</h3>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Item / Material Name</label>
+                                <input type="text" x-model="newExpense.title" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="e.g. Milk Cotton Yarn (Pack of 5)">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Category</label>
+                                <select x-model="newExpense.category" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm">
+                                    <option value="Yarn Rolls">Yarn Rolls</option>
+                                    <option value="Hooks & Tools">Hooks & Tools</option>
+                                    <option value="Packaging & Ribbons">Packaging & Ribbons</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Cost Amount (₹)</label>
+                                <input type="number" min="0" x-model.number="newExpense.amount" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="0">
+                            </div>
+                            <button @click="addExpense" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-3 rounded-xl transition text-sm cursor-pointer">Save Expense</button>
+                        </div>
+
+                        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
+                            <table class="w-full text-left border-collapse min-w-[600px]">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="p-4">Material Name</th>
+                                        <th class="p-4">Category</th>
+                                        <th class="p-4">Amount</th>
+                                        <th class="p-4">Date</th>
+                                        <th class="p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm">
+                                    <template x-for="expense in expenses" :key="expense.docId">
+                                        <tr>
+                                            <td class="p-4 font-semibold text-slate-900" x-text="expense.title"></td>
+                                            <td class="p-4">
+                                                <span class="bg-slate-100 text-slate-700 font-semibold text-[11px] px-2.5 py-1 rounded-full" x-text="expense.category"></span>
+                                            </td>
+                                            <td class="p-4 font-bold text-rose-500" x-text="`₹${Number(expense.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
+                                            <td class="p-4 text-slate-400 text-xs" x-text="expense.date"></td>
+                                            <td class="p-4 text-right">
+                                                <button @click="deleteExpense(expense.docId)" class="text-rose-500 hover:text-rose-700 font-medium text-xs cursor-pointer">Remove</button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="expenses.length === 0">
+                                        <td colspan="5" class="p-8 text-center text-slate-400 text-sm">No material expenses logged.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. PROFIT & ANALYTICS VIEW -->
                 <div x-show="currentTab === 'profit'" class="space-y-6">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">Profit & Financial Analytics</h2>
-                        <p class="text-xs text-slate-400">Total earnings and expense summaries</p>
+                        <p class="text-xs text-slate-400">Total earnings, material expenses, and net profit summaries</p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-2">
                             <span class="text-xs font-semibold text-slate-400 uppercase">Gross Revenue</span>
                             <h3 class="text-3xl font-black text-slate-900" x-text="`₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-2">
-                            <span class="text-xs font-semibold text-slate-400 uppercase">Total Expenses</span>
+                            <span class="text-xs font-semibold text-slate-400 uppercase">Item Costs</span>
                             <h3 class="text-3xl font-black text-rose-500" x-text="`₹${totalCost.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
                         </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-2">
+                            <span class="text-xs font-semibold text-slate-400 uppercase">Material Expenses</span>
+                            <h3 class="text-3xl font-black text-amber-500" x-text="`₹${totalMaterialExpenses.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
+                        </div>
                         <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-2xl shadow-lg text-white space-y-2">
-                            <span class="text-xs font-semibold text-emerald-100 uppercase">Net Profit Earned</span>
-                            <h3 class="text-3xl font-black" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
+                            <span class="text-xs font-semibold text-emerald-100 uppercase">True Net Profit</span>
+                            <h3 class="text-3xl font-black" x-text="`₹${trueNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
                         </div>
                     </div>
                 </div>
@@ -431,8 +596,12 @@
                 openModal: false,
                 inventory: [],
                 payments: [],
+                orders: [],
+                expenses: [],
                 newItem: { name: '', category: '', image: '', costPrice: '', price: '', stock: '' },
                 newPayment: { customer: '', amount: '', cost: '', method: 'Cash' },
+                newOrder: { customer: '', description: '', total: '', advance: '', dueDate: '', status: 'Pending' },
+                newExpense: { title: '', category: 'Yarn Rolls', amount: '' },
 
                 init() {
                     this.initRealtimeListeners();
@@ -454,6 +623,20 @@
 
                         window.onSnapshot(window.collection(window.db, "payments"), (snapshot) => {
                             this.payments = snapshot.docs.map(docSnap => ({
+                                docId: docSnap.id,
+                                ...docSnap.data()
+                            }));
+                        });
+
+                        window.onSnapshot(window.collection(window.db, "orders"), (snapshot) => {
+                            this.orders = snapshot.docs.map(docSnap => ({
+                                docId: docSnap.id,
+                                ...docSnap.data()
+                            }));
+                        });
+
+                        window.onSnapshot(window.collection(window.db, "expenses"), (snapshot) => {
+                            this.expenses = snapshot.docs.map(docSnap => ({
                                 docId: docSnap.id,
                                 ...docSnap.data()
                             }));
@@ -561,7 +744,7 @@
                         cost: Number(item.costPrice || 0),
                         method: selectedMethod,
                         date: new Date().toISOString().split('T')[0],
-                        matchedItemName: item.name // Saved to help restore stock if deleted later
+                        matchedItemName: item.name
                     };
 
                     try {
@@ -596,17 +779,85 @@
 
                 async deletePayment(payment) {
                     try {
-                        // If this payment came from a POS sale, find the matching item name and return 1 stock
                         if (payment.matchedItemName) {
                             const foundItem = this.inventory.find(i => i.name.toLowerCase() === payment.matchedItemName.toLowerCase());
                             if (foundItem) {
                                 await this.updateStock(foundItem, 1);
                             }
                         }
-
                         await window.deleteDoc(window.doc(window.db, "payments", payment.docId));
                     } catch (e) {
                         alert("Error deleting payment.");
+                    }
+                },
+
+                shareWhatsAppReceipt(payment) {
+                    const text = `Hello ${payment.customer}! 🌸 Thank you for shopping with ShivShakti Crochet. Here is your receipt:\n\nAmount Paid: ₹${payment.amount}\nPayment Mode: ${payment.method}\nDate: ${payment.date}\n\nWe hope you love your handmade crochet item! ✨`;
+                    const encoded = encodeURIComponent(text);
+                    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+                },
+
+                async addOrder() {
+                    if (!this.newOrder.customer || !this.newOrder.description) {
+                        alert("Please fill in customer name and order description.");
+                        return;
+                    }
+                    const orderData = {
+                        customer: this.newOrder.customer,
+                        description: this.newOrder.description,
+                        total: Math.max(0, Number(this.newOrder.total) || 0),
+                        advance: Math.max(0, Number(this.newOrder.advance) || 0),
+                        dueDate: this.newOrder.dueDate || 'No Date',
+                        status: this.newOrder.status
+                    };
+                    try {
+                        await window.addDoc(window.collection(window.db, "orders"), orderData);
+                        this.newOrder = { customer: '', description: '', total: '', advance: '', dueDate: '', status: 'Pending' };
+                    } catch (e) {
+                        alert("Error saving custom order.");
+                    }
+                },
+
+                async updateOrderStatus(order, newStatus) {
+                    try {
+                        await window.updateDoc(window.doc(window.db, "orders", order.docId), { status: newStatus });
+                    } catch (e) {
+                        alert("Error updating order status.");
+                    }
+                },
+
+                async deleteOrder(docId) {
+                    try {
+                        await window.deleteDoc(window.doc(window.db, "orders", docId));
+                    } catch (e) {
+                        alert("Error deleting order.");
+                    }
+                },
+
+                async addExpense() {
+                    if (!this.newExpense.title || this.newExpense.amount === '') {
+                        alert("Please fill in expense title and amount.");
+                        return;
+                    }
+                    const expenseData = {
+                        title: this.newExpense.title,
+                        category: this.newExpense.category,
+                        amount: Math.max(0, Number(this.newExpense.amount) || 0),
+                        date: new Date().toISOString().split('T')[0]
+                    };
+                    try {
+                        await window.addDoc(window.collection(window.db, "expenses"), expenseData);
+                        this.newExpense = { title: '', category: 'Yarn Rolls', amount: '' };
+                    } catch (e) {
+                        alert("Error saving expense.");
+                    }
+                },
+
+                async deleteExpense(docId) {
+                    try {
+                        await window.deleteDoc(window.doc(window.db, "expenses", docId));
+                    } catch (e) {
+                        alert("Error deleting expense.");
                     }
                 },
 
@@ -616,11 +867,17 @@
                 get totalCost() {
                     return this.payments.reduce((acc, p) => acc + Number(p.cost || 0), 0);
                 },
+                get totalMaterialExpenses() {
+                    return this.expenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
+                },
                 get totalNetProfit() {
                     return this.totalRevenue - this.totalCost;
                 },
-                get lowStockCount() {
-                    return this.inventory.filter(item => Number(item.stock || 0) <= 3).length;
+                get trueNetProfit() {
+                    return this.totalNetProfit - this.totalMaterialExpenses;
+                },
+                get lowStockItems() {
+                    return this.inventory.filter(item => Number(item.stock || 0) <= 3);
                 }
             }
         }
