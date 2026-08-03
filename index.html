@@ -56,8 +56,11 @@
                 <button @click="currentTab = 'pos'; mobileMenuOpen = false" :class="currentTab === 'pos' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
                     🛍️ Street Cart / POS
                 </button>
+                <button @click="currentTab = 'dailySales'; mobileMenuOpen = false" :class="currentTab === 'dailySales' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
+                    📅 Daily Sales Ledger
+                </button>
                 <button @click="currentTab = 'payments'; mobileMenuOpen = false" :class="currentTab === 'payments' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
-                    Payments & Sales
+                    Payments & Orders
                 </button>
                 <button @click="currentTab = 'profit'; mobileMenuOpen = false" :class="currentTab === 'profit' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
                     📈 Profit & Analytics
@@ -66,7 +69,7 @@
 
             <div class="p-4 m-4 bg-rose-50 rounded-2xl border border-rose-100 text-center">
                 <p class="text-xs font-medium text-rose-800">Cloud Live Real-Time Sync</p>
-                <span class="text-[10px] text-rose-600 font-bold block mt-1">⚡ Instant Cross-Device Sync</span>
+                <span class="text-[10px] text-rose-600 font-bold block mt-1">⚡ Auto-Resets at 12 AM Daily</span>
             </div>
         </aside>
 
@@ -75,7 +78,7 @@
             
             <header class="hidden md:flex bg-white border-b border-slate-200 px-8 py-4 justify-between items-center z-10 shadow-sm">
                 <div>
-                    <h1 class="text-xl font-bold capitalize text-slate-800" x-text="currentTab === 'dashboard' ? 'Home Dashboard' : (currentTab === 'pos' ? 'Street Cart / POS' : currentTab)"></h1>
+                    <h1 class="text-xl font-bold capitalize text-slate-800" x-text="currentTab === 'dashboard' ? 'Home Dashboard' : (currentTab === 'pos' ? 'Street Cart / POS' : (currentTab === 'dailySales' ? 'Daily Sales Ledger' : currentTab))"></h1>
                     <p class="text-xs text-slate-400">Live store management system</p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -114,15 +117,17 @@
                         </div>
                     </div>
 
-                    <div class="bg-gradient-to-r from-rose-500 to-pink-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-rose-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                            <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">Store Overview</span>
-                            <h2 class="text-2xl md:text-3xl font-extrabold mt-3">Welcome to Bliss Crochet!</h2>
-                            <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Manage inventory, handle street bargains quickly, and check profits effortlessly.</p>
+                    <!-- TODAY'S LIVE EARNINGS BANNER (Platform Style) -->
+                    <div class="bg-gradient-to-r from-rose-500 to-pink-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-rose-100 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                        <div class="md:col-span-2">
+                            <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">Live Today Summary</span>
+                            <h2 class="text-2xl md:text-3xl font-extrabold mt-3">Today's Performance</h2>
+                            <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Orders and revenue received today. Resets automatically every night at 12:00 AM.</p>
                         </div>
-                        <div @click="currentTab = 'profit'" class="bg-white/10 hover:bg-white/20 transition cursor-pointer p-4 rounded-2xl w-full md:w-auto text-left md:text-right shadow-sm">
-                            <span class="text-xs text-rose-200 block">Total Net Profit ↗</span>
-                            <h3 class="text-3xl md:text-4xl font-black mt-1" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
+                        <div class="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/20 text-center space-y-1">
+                            <span class="text-xs text-rose-200 block uppercase font-bold tracking-wider">Today's Revenue</span>
+                            <h3 class="text-3xl md:text-4xl font-black" x-text="`₹${todayTotalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 0})}`"></h3>
+                            <p class="text-xs text-rose-100 font-medium pt-1"><span x-text="todayOrdersCount"></span> Orders Sold Today</p>
                         </div>
                     </div>
 
@@ -136,20 +141,63 @@
                             <div class="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-rose-50 text-slate-400 group-hover:text-rose-500 flex items-center justify-center font-bold transition">📦</div>
                         </div>
 
-                        <div @click="currentTab = 'payments'" class="bg-white hover:border-rose-300 hover:shadow-md transition cursor-pointer p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group">
+                        <div @click="currentTab = 'dailySales'" class="bg-white hover:border-rose-300 hover:shadow-md transition cursor-pointer p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group">
                             <div>
-                                <p class="text-[10px] md:text-xs text-slate-400 group-hover:text-rose-500 transition font-bold uppercase tracking-wider">Total Sales →</p>
-                                <h3 class="text-xl md:text-3xl font-bold text-slate-900 mt-1 truncate" x-text="`₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 0})}`"></h3>
+                                <p class="text-[10px] md:text-xs text-slate-400 group-hover:text-rose-500 transition font-bold uppercase tracking-wider">Daily Sales Ledger →</p>
+                                <h3 class="text-xl md:text-3xl font-bold text-slate-900 mt-1" x-text="`${dailyLedgerSummary.length} Days Recorded`"></h3>
                             </div>
-                            <div class="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-rose-50 text-slate-400 group-hover:text-rose-500 flex items-center justify-center font-bold transition">🛍️</div>
+                            <div class="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-rose-50 text-slate-400 group-hover:text-rose-500 flex items-center justify-center font-bold transition">📅</div>
                         </div>
 
                         <div @click="currentTab = 'profit'" class="bg-white hover:border-emerald-300 hover:shadow-md transition cursor-pointer p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group">
                             <div>
-                                <p class="text-[10px] md:text-xs text-slate-400 group-hover:text-emerald-600 transition font-bold uppercase tracking-wider">Net Profit →</p>
+                                <p class="text-[10px] md:text-xs text-slate-400 group-hover:text-emerald-600 transition font-bold uppercase tracking-wider">Total Net Profit →</p>
                                 <h3 class="text-xl md:text-3xl font-bold text-emerald-600 mt-1 truncate" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 0})}`"></h3>
                             </div>
                             <div class="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-emerald-50 text-slate-400 group-hover:text-emerald-600 flex items-center justify-center font-bold transition">📈</div>
+                        </div>
+                    </div>
+
+                    <!-- Today's Live Orders Feed -->
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base">🛍️ Today's Live Orders Received</h3>
+                                <p class="text-xs text-slate-400">Orders placed today before midnight reset</p>
+                            </div>
+                            <span class="bg-rose-50 text-rose-600 text-xs font-bold px-3 py-1 rounded-full" x-text="`${todayOrders.length} Orders`"></span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse min-w-[600px]">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="p-3">Customer / Item</th>
+                                        <th class="p-3">Price</th>
+                                        <th class="p-3">Payment Mode</th>
+                                        <th class="p-3">Time</th>
+                                        <th class="p-3 text-right">Receipt</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm">
+                                    <template x-for="order in todayOrders" :key="order.docId">
+                                        <tr>
+                                            <td class="p-3 font-semibold text-slate-900" x-text="order.customer"></td>
+                                            <td class="p-3 font-bold text-slate-700" x-text="`₹${Number(order.amount || 0).toLocaleString('en-IN')}`"></td>
+                                            <td class="p-3">
+                                                <span class="bg-slate-100 text-slate-700 font-semibold text-[11px] px-2.5 py-1 rounded-full" x-text="order.method || 'Cash'"></span>
+                                            </td>
+                                            <td class="p-3 text-slate-400 text-xs" x-text="order.time || 'Today'"></td>
+                                            <td class="p-3 text-right">
+                                                <button @click="shareWhatsAppReceipt(order)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium text-xs px-3 py-1.5 rounded-lg transition cursor-pointer">💬 WhatsApp</button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="todayOrders.length === 0">
+                                        <td colspan="5" class="p-8 text-center text-slate-400 text-sm">No orders received yet today. Make a sale in the Street Cart!</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -255,7 +303,7 @@
                                         <span>Sell Instantly</span>
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     </button>
-                                </div >
+                                </div>
                             </div>
                         </template>
                     </div>
@@ -265,7 +313,65 @@
                     </div>
                 </div>
 
-                <!-- 4. PAYMENTS VIEW -->
+                <!-- 4. DAILY SALES LEDGER (Archived Past Days) -->
+                <div x-show="currentTab === 'dailySales'" class="space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">📅 Daily Sales Ledger & Archive</h2>
+                        <p class="text-xs text-slate-400">All past days' sales automatically archived after 12:00 AM every night with item names and prices</p>
+                    </div>
+
+                    <!-- Daily Ledger Accordion / Cards List -->
+                    <div class="space-y-4">
+                        <template x-for="dayData in dailyLedgerSummary" :key="dayData.dateStr">
+                            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                                <div class="bg-slate-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 font-black flex items-center justify-center text-sm">📅</div>
+                                        <div>
+                                            <h3 class="font-bold text-slate-900 text-base" x-text="formatDateStr(dayData.dateStr)"></h3>
+                                            <p class="text-xs text-slate-400"><span x-text="dayData.orders.length"></span> items sold</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Total Day Revenue</span>
+                                        <span class="text-lg font-black text-rose-600" x-text="`₹${dayData.totalAmount.toLocaleString('en-IN')}`"></span>
+                                    </div>
+                                </div>
+
+                                <div class="p-6">
+                                    <table class="w-full text-left border-collapse min-w-[500px]">
+                                        <thead>
+                                            <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                                                <th class="pb-2">Order / Customer</th>
+                                                <th class="pb-2">Price</th>
+                                                <th class="pb-2">Payment Mode</th>
+                                                <th class="pb-2 text-right">Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 text-sm">
+                                            <template x-for="ord in dayData.orders" :key="ord.docId">
+                                                <tr>
+                                                    <td class="py-3 font-semibold text-slate-800" x-text="ord.customer"></td>
+                                                    <td class="py-3 font-bold text-slate-900" x-text="`₹${Number(ord.amount || 0).toLocaleString('en-IN')}`"></td>
+                                                    <td class="py-3">
+                                                        <span class="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded-md" x-text="ord.method || 'Cash'"></span>
+                                                    </td>
+                                                    <td class="py-3 text-right text-slate-400 text-xs" x-text="ord.time || '—'"></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div x-show="dailyLedgerSummary.length === 0" class="bg-white rounded-3xl p-12 text-center border border-slate-100">
+                            <p class="text-slate-400 text-sm">No archived past days yet. Orders placed today will automatically move to the Daily Ledger after 12:00 AM!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. PAYMENTS & ORDERS VIEW -->
                 <div x-show="currentTab === 'payments'" class="space-y-6">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">Payments & Orders</h2>
@@ -336,7 +442,7 @@
                     </div>
                 </div>
 
-                <!-- 5. PROFIT & ANALYTICS VIEW -->
+                <!-- 6. PROFIT & ANALYTICS VIEW -->
                 <div x-show="currentTab === 'profit'" class="space-y-6">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">📈 Profit & Financial Analytics</h2>
@@ -360,52 +466,6 @@
                         <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-5 rounded-2xl shadow-md text-white space-y-1">
                             <span class="text-[11px] font-bold text-emerald-100 uppercase">True Net Profit</span>
                             <h3 class="text-2xl font-black" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
-                        </div>
-                    </div>
-
-                    <!-- Day-by-Day Event / Stall Breakdown Feature -->
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-5">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div>
-                                <h3 class="font-bold text-slate-800 text-base">🗓️ Day-by-Day Sales Breakdown (Day 1, Day 2...)</h3>
-                                <p class="text-xs text-slate-400">Track earnings and performance separately for each exhibition or event day with specific dates</p>
-                            </div>
-                            
-                            <!-- Add Event Day Trigger Button -->
-                            <button @click="openDayModal = true" class="bg-rose-500 hover:bg-rose-600 text-white font-medium px-4 py-2 rounded-xl text-xs shadow-md shadow-rose-100 transition cursor-pointer flex items-center gap-1.5">
-                                <span>+ Add Exhibition Day</span>
-                            </button>
-                        </div>
-
-                        <!-- Days Grid Cards -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            <template x-for="dayObj in sortedExhibitionDays" :key="dayObj.docId">
-                                <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3 relative group hover:border-rose-300 hover:bg-white hover:shadow-md transition">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <span class="bg-rose-100 text-rose-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide" x-text="dayObj.dayName"></span>
-                                            <h4 class="font-bold text-slate-900 text-sm mt-1" x-text="dayObj.title || 'Exhibition Day'"></h4>
-                                            <p class="text-[11px] text-slate-400 font-medium mt-0.5" x-text="formatDateStr(dayObj.date)"></p>
-                                        </div>
-                                        <button @click="deleteExhibitionDay(dayObj.docId)" class="text-slate-300 hover:text-rose-500 text-xs font-bold cursor-pointer transition">✕</button>
-                                    </div>
-
-                                    <div class="pt-2 border-t border-slate-200/60 flex justify-between items-center">
-                                        <div>
-                                            <span class="text-[10px] font-bold text-slate-400 uppercase block">Day Revenue</span>
-                                            <span class="text-base font-black text-slate-900" x-text="`₹${getDayRevenue(dayObj.date).toLocaleString('en-IN')}`"></span>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="text-[10px] font-bold text-slate-400 uppercase block">Sales Count</span>
-                                            <span class="text-base font-black text-rose-500" x-text="getDaySalesCount(dayObj.date)"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-
-                        <div x-show="exhibitionDays.length === 0" class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-400 text-xs">
-                            No exhibition days configured yet. Click "+ Add Exhibition Day" to start tracking Day 1, Day 2, etc. with exact dates!
                         </div>
                     </div>
 
@@ -548,31 +608,6 @@
         </div>
     </div>
 
-    <!-- Modal for Adding Exhibition Day (Day 1, Day 2...) -->
-    <div x-show="openDayModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 space-y-5 shadow-2xl m-4">
-            <h3 class="text-xl font-bold text-slate-900">Add Exhibition / Sale Day</h3>
-            <div class="space-y-4 text-sm">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Day Tag (e.g. Day 1, Day 2)</label>
-                    <input type="text" x-model="newDay.dayName" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="e.g. Day 1">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Event / Location Title</label>
-                    <input type="text" x-model="newDay.title" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="e.g. Weekend Craft Bazaar">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Exact Date</label>
-                    <input type="date" x-model="newDay.date" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none">
-                </div>
-            </div>
-            <div class="flex gap-4 pt-2">
-                <button @click="openDayModal = false" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-3 rounded-xl transition text-sm cursor-pointer">Cancel</button>
-                <button @click="addExhibitionDay" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-rose-100 text-sm cursor-pointer">Save Day</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Firebase SDK Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -607,16 +642,13 @@
                 currentTab: 'dashboard',
                 mobileMenuOpen: false,
                 openModal: false,
-                openDayModal: false,
                 inventory: [],
                 payments: [],
                 expenses: [],
-                exhibitionDays: [],
                 posSearchQuery: '',
                 newItem: { name: '', category: '', image: '', costPrice: '', price: '', stock: '' },
                 newPayment: { customer: '', amount: '', cost: '', method: 'Cash' },
                 newExpense: { title: '', amount: '', date: new Date().toISOString().split('T')[0] },
-                newDay: { dayName: 'Day 1', title: '', date: new Date().toISOString().split('T')[0] },
 
                 init() {
                     this.initRealtimeListeners();
@@ -645,13 +677,6 @@
 
                         window.onSnapshot(window.collection(window.db, "expenses"), (snapshot) => {
                             this.expenses = snapshot.docs.map(docSnap => ({
-                                docId: docSnap.id,
-                                ...docSnap.data()
-                            }));
-                        });
-
-                        window.onSnapshot(window.collection(window.db, "exhibitionDays"), (snapshot) => {
-                            this.exhibitionDays = snapshot.docs.map(docSnap => ({
                                 docId: docSnap.id,
                                 ...docSnap.data()
                             }));
@@ -753,12 +778,14 @@
 
                     await this.updateStock(item, -1);
 
+                    const now = new Date();
                     const paymentData = {
                         customer: `Street Customer (${item.name})`,
                         amount: finalSalePrice,
                         cost: Number(item.costPrice || 0),
                         method: selectedMethod,
-                        date: new Date().toISOString().split('T')[0],
+                        date: now.toISOString().split('T')[0],
+                        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                         matchedItemName: item.name
                     };
 
@@ -776,12 +803,14 @@
                         return;
                     }
 
+                    const now = new Date();
                     const paymentData = {
                         customer: this.newPayment.customer,
                         amount: Math.max(0, Number(this.newPayment.amount) || 0),
                         cost: Math.max(0, Number(this.newPayment.cost) || 0),
                         method: this.newPayment.method,
-                        date: new Date().toISOString().split('T')[0]
+                        date: now.toISOString().split('T')[0],
+                        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     };
 
                     try {
@@ -834,45 +863,6 @@
                     }
                 },
 
-                async addExhibitionDay() {
-                    if (!this.newDay.dayName || !this.newDay.date) {
-                        alert("Please provide day name and date.");
-                        return;
-                    }
-
-                    const dayData = {
-                        dayName: this.newDay.dayName,
-                        title: this.newDay.title || 'Exhibition Day',
-                        date: this.newDay.date
-                    };
-
-                    try {
-                        await window.addDoc(window.collection(window.db, "exhibitionDays"), dayData);
-                        this.newDay = { dayName: `Day ${this.exhibitionDays.length + 2}`, title: '', date: new Date().toISOString().split('T')[0] };
-                        this.openDayModal = false;
-                    } catch (e) {
-                        alert("Error saving exhibition day.");
-                    }
-                },
-
-                async deleteExhibitionDay(docId) {
-                    try {
-                        await window.deleteDoc(window.doc(window.db, "exhibitionDays", docId));
-                    } catch (e) {
-                        alert("Error deleting exhibition day.");
-                    }
-                },
-
-                getDayRevenue(dateStr) {
-                    return this.payments
-                        .filter(p => p.date === dateStr)
-                        .reduce((sum, p) => sum + Number(p.amount || 0), 0);
-                },
-
-                getDaySalesCount(dateStr) {
-                    return this.payments.filter(p => p.date === dateStr).length;
-                },
-
                 formatDateStr(dateStr) {
                     if (!dateStr) return '';
                     const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -895,8 +885,42 @@
                     );
                 },
 
-                get sortedExhibitionDays() {
-                    return [...this.exhibitionDays].sort((a, b) => new Date(a.date) - new Date(b.date));
+                get todayDateStr() {
+                    return new Date().toISOString().split('T')[0];
+                },
+
+                get todayOrders() {
+                    const today = this.todayDateStr;
+                    return this.payments.filter(p => p.date === today);
+                },
+
+                get todayTotalRevenue() {
+                    return this.todayOrders.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+                },
+
+                get todayOrdersCount() {
+                    return this.todayOrders.length;
+                },
+
+                get dailyLedgerSummary() {
+                    const today = this.todayDateStr;
+                    const map = {};
+
+                    this.payments.forEach(p => {
+                        const d = p.date || today;
+                        // Exclude today so "Today's Orders" stays live on the main dashboard, 
+                        // while past days show up in the archived Daily Ledger tab.
+                        if (d !== today) {
+                            if (!map[d]) {
+                                map[d] = { dateStr: d, orders: [], totalAmount: 0 };
+                            }
+                            map[d].orders.push(p);
+                            map[d].totalAmount += Number(p.amount || 0);
+                        }
+                    });
+
+                    // Sort by date descending (newest past days first)
+                    return Object.values(map).sort((a, b) => new Date(b.dateStr) - new Date(a.dateStr));
                 },
 
                 get totalRevenue() {
