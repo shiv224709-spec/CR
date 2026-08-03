@@ -60,7 +60,7 @@
                     Payments & Sales
                 </button>
                 <button @click="currentTab = 'profit'; mobileMenuOpen = false" :class="currentTab === 'profit' ? 'bg-rose-50 text-rose-600 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'" class="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition text-sm cursor-pointer">
-                    Profit & Analytics
+                    📈 Profit & Analytics
                 </button>
             </nav>
 
@@ -91,11 +91,26 @@
 
                 <!-- 1. DASHBOARD VIEW -->
                 <div x-show="currentTab === 'dashboard'" class="space-y-6">
-                    <!-- Low Stock Alert Banner -->
-                    <div x-show="lowStockItems.length > 0" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-amber-800">
-                        <span class="text-xl">⚠️</span>
-                        <div class="flex-1 text-xs md:text-sm font-medium">
-                            <span class="font-bold">Low Stock Warning:</span> <span x-text="lowStockItems.map(i => `${i.name} (${i.stock} left)`).join(', ')"></span> running low! Restock soon.
+                    
+                    <!-- Clean & Structured Low Stock Alert Component -->
+                    <div x-show="lowStockItems.length > 0" class="bg-amber-50 border border-amber-200 rounded-3xl p-5 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-xl">⚠️</span>
+                                <h3 class="font-bold text-amber-900 text-sm">Low Stock Alert (<span x-text="lowStockItems.length"></span> items need restock)</h3>
+                            </div>
+                            <button @click="currentTab = 'inventory'" class="text-xs font-bold text-amber-800 hover:text-amber-950 underline cursor-pointer">Manage Inventory →</button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 pt-1">
+                            <template x-for="item in lowStockItems" :key="'alert-'+item.docId">
+                                <div class="bg-white/90 border border-amber-200/80 p-3 rounded-2xl flex items-center justify-between gap-2 shadow-2xs">
+                                    <div class="truncate">
+                                        <p class="font-semibold text-xs text-slate-900 truncate" x-text="item.name"></p>
+                                        <p class="text-[11px] font-bold text-rose-600" x-text="`${item.stock} left in stock`"></p>
+                                    </div>
+                                    <button @click="currentTab = 'inventory'" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-bold px-2 py-1 rounded-lg shrink-0 cursor-pointer">Restock</button>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
@@ -105,30 +120,36 @@
                             <h2 class="text-2xl md:text-3xl font-extrabold mt-3">Welcome to Bliss Crochet!</h2>
                             <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Manage inventory, handle street bargains quickly, and check profits effortlessly.</p>
                         </div>
-                        <div class="bg-white/10 p-4 rounded-2xl w-full md:w-auto text-left md:text-right">
-                            <span class="text-xs text-rose-200 block">Total Net Profit</span>
+                        <div @click="currentTab = 'profit'" class="bg-white/10 hover:bg-white/20 transition cursor-pointer p-4 rounded-2xl w-full md:w-auto text-left md:text-right shadow-sm">
+                            <span class="text-xs text-rose-200 block">Total Net Profit ↗</span>
                             <h3 class="text-3xl md:text-4xl font-black mt-1" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
                         </div>
                     </div>
 
+                    <!-- Clickable Dashboard Metric Blocks -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-                        <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                        <div @click="currentTab = 'inventory'" class="bg-white hover:border-rose-300 hover:shadow-md transition cursor-pointer p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group">
                             <div>
-                                <p class="text-[10px] md:text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Products</p>
+                                <p class="text-[10px] md:text-xs text-slate-400 group-hover:text-rose-500 transition font-bold uppercase tracking-wider">Total Products →</p>
                                 <h3 class="text-2xl md:text-3xl font-bold text-slate-900 mt-1" x-text="inventory.length"></h3>
                             </div>
+                            <div class="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-rose-50 text-slate-400 group-hover:text-rose-500 flex items-center justify-center font-bold transition">📦</div>
                         </div>
-                        <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+
+                        <div @click="currentTab = 'payments'" class="bg-white hover:border-rose-300 hover:shadow-md transition cursor-pointer p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group">
                             <div>
-                                <p class="text-[10px] md:text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Sales</p>
+                                <p class="text-[10px] md:text-xs text-slate-400 group-hover:text-rose-500 transition font-bold uppercase tracking-wider">Total Sales →</p>
                                 <h3 class="text-xl md:text-3xl font-bold text-slate-900 mt-1 truncate" x-text="`₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 0})}`"></h3>
                             </div>
+                            <div class="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-rose-50 text-slate-400 group-hover:text-rose-500 flex items-center justify-center font-bold transition">🛍️</div>
                         </div>
-                        <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+
+                        <div @click="currentTab = 'profit'" class="bg-white hover:border-emerald-300 hover:shadow-md transition cursor-pointer p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group">
                             <div>
-                                <p class="text-[10px] md:text-xs text-slate-400 font-semibold uppercase tracking-wider">Net Profit</p>
+                                <p class="text-[10px] md:text-xs text-slate-400 group-hover:text-emerald-600 transition font-bold uppercase tracking-wider">Net Profit →</p>
                                 <h3 class="text-xl md:text-3xl font-bold text-emerald-600 mt-1 truncate" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 0})}`"></h3>
                             </div>
+                            <div class="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-emerald-50 text-slate-400 group-hover:text-emerald-600 flex items-center justify-center font-bold transition">📈</div>
                         </div>
                     </div>
                 </div>
@@ -318,22 +339,99 @@
                 <!-- 5. PROFIT & ANALYTICS VIEW -->
                 <div x-show="currentTab === 'profit'" class="space-y-6">
                     <div>
-                        <h2 class="text-xl font-bold text-slate-800">Profit & Financial Analytics</h2>
-                        <p class="text-xs text-slate-400">Total earnings and net profit summaries</p>
+                        <h2 class="text-xl font-bold text-slate-800">📈 Profit & Financial Analytics</h2>
+                        <p class="text-xs text-slate-400">Total earnings, operating expenses, and visual monthly sales breakdown</p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-2">
-                            <span class="text-xs font-semibold text-slate-400 uppercase">Gross Revenue</span>
-                            <h3 class="text-3xl font-black text-slate-900" x-text="`₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
+                    <!-- Top Summary Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-1">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase">Gross Revenue</span>
+                            <h3 class="text-2xl font-black text-slate-900" x-text="`₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
                         </div>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-2">
-                            <span class="text-xs font-semibold text-slate-400 uppercase">Item Costs</span>
-                            <h3 class="text-3xl font-black text-rose-500" x-text="`₹${totalCost.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-1">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase">Item Costs</span>
+                            <h3 class="text-2xl font-black text-rose-500" x-text="`₹${totalCost.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
                         </div>
-                        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-2xl shadow-lg text-white space-y-2">
-                            <span class="text-xs font-semibold text-emerald-100 uppercase">Net Profit</span>
-                            <h3 class="text-3xl font-black" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-1">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase">Stall/Operating Expenses</span>
+                            <h3 class="text-2xl font-black text-amber-500" x-text="`₹${totalExpenses.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
+                        </div>
+                        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-5 rounded-2xl shadow-md text-white space-y-1">
+                            <span class="text-[11px] font-bold text-emerald-100 uppercase">True Net Profit</span>
+                            <h3 class="text-2xl font-black" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
+                        </div>
+                    </div>
+
+                    <!-- Visual Monthly Sales Bar Chart Section -->
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-slate-800 text-base">📊 Monthly Sales Performance</h3>
+                            <span class="text-xs text-slate-400 font-medium">Last 6 Months Trend</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-6 gap-2 md:gap-4 items-end h-48 pt-6 border-b border-slate-100 pb-2">
+                            <template x-for="m in monthlySalesChartData" :key="m.month">
+                                <div class="flex flex-col items-center gap-2 h-full justify-end">
+                                    <span class="text-[10px] font-bold text-slate-500" x-text="m.amount > 0 ? `₹${m.amount}` : ''"></span>
+                                    <div class="w-full max-w-[48px] bg-rose-100 rounded-t-xl overflow-hidden flex items-end justify-center transition-all duration-500" :style="`height: ${Math.max(12, Math.min(100, (m.amount / maxMonthlySales) * 100))}%`">
+                                        <div class="w-full bg-gradient-to-t from-rose-500 to-pink-500 h-full"></div>
+                                    </div>
+                                    <span class="text-[11px] font-semibold text-slate-600 truncate" x-text="m.month"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Expense Tracker Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-fit space-y-4">
+                            <h3 class="font-bold text-slate-800 text-base">Record Business Expense</h3>
+                            <p class="text-xs text-slate-400">Record stall rent, packaging, yarns, market travel, etc.</p>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Expense Title</label>
+                                <input type="text" x-model="newExpense.title" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="e.g. Weekend Stall Rent">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Amount (₹)</label>
+                                <input type="number" min="0" x-model.number="newExpense.amount" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Date</label>
+                                <input type="date" x-model="newExpense.date" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none text-sm">
+                            </div>
+                            <button @click="addExpense" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-3 rounded-xl transition text-sm cursor-pointer">Save Expense</button>
+                        </div>
+
+                        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
+                            <div class="p-4 border-b border-slate-100">
+                                <h3 class="font-bold text-slate-800 text-base">Recorded Expenses Log</h3>
+                            </div>
+                            <table class="w-full text-left border-collapse min-w-[500px]">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="p-4">Expense Description</th>
+                                        <th class="p-4">Amount</th>
+                                        <th class="p-4">Date</th>
+                                        <th class="p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm">
+                                    <template x-for="exp in expenses" :key="exp.docId">
+                                        <tr>
+                                            <td class="p-4 font-semibold text-slate-900" x-text="exp.title"></td>
+                                            <td class="p-4 font-bold text-rose-500" x-text="`-₹${Number(exp.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></td>
+                                            <td class="p-4 text-slate-400 text-xs" x-text="exp.date"></td>
+                                            <td class="p-4 text-right">
+                                                <button @click="deleteExpense(exp.docId)" class="text-rose-500 hover:text-rose-700 font-medium text-xs cursor-pointer">Remove</button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="expenses.length === 0">
+                                        <td colspan="4" class="p-8 text-center text-slate-400 text-sm">No expenses recorded yet.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -440,9 +538,11 @@
                 openModal: false,
                 inventory: [],
                 payments: [],
+                expenses: [],
                 posSearchQuery: '',
                 newItem: { name: '', category: '', image: '', costPrice: '', price: '', stock: '' },
                 newPayment: { customer: '', amount: '', cost: '', method: 'Cash' },
+                newExpense: { title: '', amount: '', date: new Date().toISOString().split('T')[0] },
 
                 init() {
                     this.initRealtimeListeners();
@@ -464,6 +564,13 @@
 
                         window.onSnapshot(window.collection(window.db, "payments"), (snapshot) => {
                             this.payments = snapshot.docs.map(docSnap => ({
+                                docId: docSnap.id,
+                                ...docSnap.data()
+                            }));
+                        });
+
+                        window.onSnapshot(window.collection(window.db, "expenses"), (snapshot) => {
+                            this.expenses = snapshot.docs.map(docSnap => ({
                                 docId: docSnap.id,
                                 ...docSnap.data()
                             }));
@@ -618,6 +725,34 @@
                     }
                 },
 
+                async addExpense() {
+                    if (!this.newExpense.title || this.newExpense.amount === '' || this.newExpense.amount === null) {
+                        alert("Please provide expense title and amount.");
+                        return;
+                    }
+
+                    const expenseData = {
+                        title: this.newExpense.title,
+                        amount: Math.max(0, Number(this.newExpense.amount) || 0),
+                        date: this.newExpense.date || new Date().toISOString().split('T')[0]
+                    };
+
+                    try {
+                        await window.addDoc(window.collection(window.db, "expenses"), expenseData);
+                        this.newExpense = { title: '', amount: '', date: new Date().toISOString().split('T')[0] };
+                    } catch (e) {
+                        alert("Error saving expense.");
+                    }
+                },
+
+                async deleteExpense(docId) {
+                    try {
+                        await window.deleteDoc(window.doc(window.db, "expenses", docId));
+                    } catch (e) {
+                        alert("Error deleting expense.");
+                    }
+                },
+
                 shareWhatsAppReceipt(payment) {
                     const itemName = payment.matchedItemName || payment.customer.replace('Street Customer (', '').replace(')', '') || 'Crochet Item';
                     const text = `Hello !\n🌸 Thank you for shopping with Bliss Crochet.\nHere is your receipt:\n\nItem: ${itemName}\nAmount Paid: ₹${payment.amount}\nPayment Mode: ${payment.method}\nDate: ${payment.date}\n\nWe hope you love your handmade crochet item! ✨`;
@@ -640,11 +775,36 @@
                 get totalCost() {
                     return this.payments.reduce((acc, p) => acc + Number(p.cost || 0), 0);
                 },
+                get totalExpenses() {
+                    return this.expenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
+                },
                 get totalNetProfit() {
-                    return this.totalRevenue - this.totalCost;
+                    return this.totalRevenue - this.totalCost - this.totalExpenses;
                 },
                 get lowStockItems() {
                     return this.inventory.filter(item => Number(item.stock || 0) <= 3);
+                },
+                get monthlySalesChartData() {
+                    const months = ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
+                    const monthMap = {};
+                    months.forEach(m => monthMap[m] = 0);
+
+                    this.payments.forEach(p => {
+                        if (p.date) {
+                            const d = new Date(p.date);
+                            const mName = d.toLocaleString('en-US', { month: 'short' });
+                            if (monthMap[mName] !== undefined) {
+                                monthMap[mName] += Number(p.amount || 0);
+                            }
+                        }
+                    });
+
+                    return months.map(m => ({ month: m, amount: monthMap[m] }));
+                },
+                get maxMonthlySales() {
+                    const amounts = this.monthlySalesChartData.map(m => m.amount);
+                    const max = Math.max(...amounts);
+                    return max > 0 ? max : 100;
                 }
             }
         }
