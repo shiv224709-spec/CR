@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShivShakti Crochet - Seller Dashboard</title>
+    <title>Bliss Crochet - Seller Dashboard</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Alpine.js -->
@@ -21,8 +21,8 @@
         <!-- Mobile Header Bar -->
         <div class="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center z-20">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-rose-500 text-white flex items-center justify-center font-bold text-sm shadow-md">SC</div>
-                <h2 class="font-bold text-slate-900 text-sm">ShivShakti</h2>
+                <div class="w-8 h-8 rounded-lg bg-rose-500 text-white flex items-center justify-center font-bold text-sm shadow-md">BC</div>
+                <h2 class="font-bold text-slate-900 text-sm">Bliss Crochet</h2>
             </div>
             <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -36,10 +36,10 @@
         <aside :class="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed md:translate-x-0 inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm transition-transform duration-300 ease-in-out md:static">
             <div class="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-rose-100">SC</div>
+                    <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-rose-100">BC</div>
                     <div>
-                        <h2 class="font-bold text-slate-900 leading-tight">ShivShakti</h2>
-                        <p class="text-xs text-rose-500 font-semibold tracking-wider uppercase">Crochet Store</p>
+                        <h2 class="font-bold text-slate-900 leading-tight">Bliss Crochet</h2>
+                        <p class="text-xs text-rose-500 font-semibold tracking-wider uppercase">Handmade Store</p>
                     </div>
                 </div>
                 <button @click="mobileMenuOpen = false" class="md:hidden text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
@@ -80,10 +80,10 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="text-right">
-                        <span class="block text-sm font-semibold text-slate-800">ShivShakti Admin</span>
+                        <span class="block text-sm font-semibold text-slate-800">Bliss Admin</span>
                         <span class="block text-xs text-slate-400">Store Manager</span>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center font-bold justify-center shadow-md shadow-rose-200">SC</div>
+                    <div class="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center font-bold justify-center shadow-md shadow-rose-200">BC</div>
                 </div>
             </header>
 
@@ -102,7 +102,7 @@
                     <div class="bg-gradient-to-r from-rose-500 to-pink-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-rose-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase">Store Overview</span>
-                            <h2 class="text-2xl md:text-3xl font-extrabold mt-3">Welcome to ShivShakti!</h2>
+                            <h2 class="text-2xl md:text-3xl font-extrabold mt-3">Welcome to Bliss Crochet!</h2>
                             <p class="text-rose-100 mt-1 max-w-xl text-xs md:text-sm">Manage inventory, handle street bargains quickly, and check profits effortlessly.</p>
                         </div>
                         <div class="bg-white/10 p-4 rounded-2xl w-full md:w-auto text-left md:text-right">
@@ -619,7 +619,8 @@
                 },
 
                 shareWhatsAppReceipt(payment) {
-                    const text = `Hello ${payment.customer}! 🌸 Thank you for shopping with ShivShakti Crochet. Here is your receipt:\n\nAmount Paid: ₹${payment.amount}\nPayment Mode: ${payment.method}\nDate: ${payment.date}\n\nWe hope you love your handmade crochet item! ✨`;
+                    const itemName = payment.matchedItemName || payment.customer.replace('Street Customer (', '').replace(')', '') || 'Crochet Item';
+                    const text = `Hello !\n🌸 Thank you for shopping with Bliss Crochet.\nHere is your receipt:\n\nItem: ${itemName}\nAmount Paid: ₹${payment.amount}\nPayment Mode: ${payment.method}\nDate: ${payment.date}\n\nWe hope you love your handmade crochet item! ✨`;
                     const encoded = encodeURIComponent(text);
                     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
                 },
