@@ -255,7 +255,7 @@
                                         <span>Sell Instantly</span>
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     </button>
-                                </div>
+                                </div >
                             </div>
                         </template>
                     </div>
@@ -360,6 +360,52 @@
                         <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-5 rounded-2xl shadow-md text-white space-y-1">
                             <span class="text-[11px] font-bold text-emerald-100 uppercase">True Net Profit</span>
                             <h3 class="text-2xl font-black" x-text="`₹${totalNetProfit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`"></h3>
+                        </div>
+                    </div>
+
+                    <!-- Day-by-Day Event / Stall Breakdown Feature -->
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-5">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base">🗓️ Day-by-Day Sales Breakdown (Day 1, Day 2...)</h3>
+                                <p class="text-xs text-slate-400">Track earnings and performance separately for each exhibition or event day with specific dates</p>
+                            </div>
+                            
+                            <!-- Add Event Day Trigger Button -->
+                            <button @click="openDayModal = true" class="bg-rose-500 hover:bg-rose-600 text-white font-medium px-4 py-2 rounded-xl text-xs shadow-md shadow-rose-100 transition cursor-pointer flex items-center gap-1.5">
+                                <span>+ Add Exhibition Day</span>
+                            </button>
+                        </div>
+
+                        <!-- Days Grid Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <template x-for="dayObj in sortedExhibitionDays" :key="dayObj.docId">
+                                <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3 relative group hover:border-rose-300 hover:bg-white hover:shadow-md transition">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <span class="bg-rose-100 text-rose-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide" x-text="dayObj.dayName"></span>
+                                            <h4 class="font-bold text-slate-900 text-sm mt-1" x-text="dayObj.title || 'Exhibition Day'"></h4>
+                                            <p class="text-[11px] text-slate-400 font-medium mt-0.5" x-text="formatDateStr(dayObj.date)"></p>
+                                        </div>
+                                        <button @click="deleteExhibitionDay(dayObj.docId)" class="text-slate-300 hover:text-rose-500 text-xs font-bold cursor-pointer transition">✕</button>
+                                    </div>
+
+                                    <div class="pt-2 border-t border-slate-200/60 flex justify-between items-center">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase block">Day Revenue</span>
+                                            <span class="text-base font-black text-slate-900" x-text="`₹${getDayRevenue(dayObj.date).toLocaleString('en-IN')}`"></span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase block">Sales Count</span>
+                                            <span class="text-base font-black text-rose-500" x-text="getDaySalesCount(dayObj.date)"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div x-show="exhibitionDays.length === 0" class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-400 text-xs">
+                            No exhibition days configured yet. Click "+ Add Exhibition Day" to start tracking Day 1, Day 2, etc. with exact dates!
                         </div>
                     </div>
 
@@ -502,6 +548,31 @@
         </div>
     </div>
 
+    <!-- Modal for Adding Exhibition Day (Day 1, Day 2...) -->
+    <div x-show="openDayModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 space-y-5 shadow-2xl m-4">
+            <h3 class="text-xl font-bold text-slate-900">Add Exhibition / Sale Day</h3>
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Day Tag (e.g. Day 1, Day 2)</label>
+                    <input type="text" x-model="newDay.dayName" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="e.g. Day 1">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Event / Location Title</label>
+                    <input type="text" x-model="newDay.title" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none" placeholder="e.g. Weekend Craft Bazaar">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Exact Date</label>
+                    <input type="date" x-model="newDay.date" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none">
+                </div>
+            </div>
+            <div class="flex gap-4 pt-2">
+                <button @click="openDayModal = false" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-3 rounded-xl transition text-sm cursor-pointer">Cancel</button>
+                <button @click="addExhibitionDay" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-rose-100 text-sm cursor-pointer">Save Day</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -536,13 +607,16 @@
                 currentTab: 'dashboard',
                 mobileMenuOpen: false,
                 openModal: false,
+                openDayModal: false,
                 inventory: [],
                 payments: [],
                 expenses: [],
+                exhibitionDays: [],
                 posSearchQuery: '',
                 newItem: { name: '', category: '', image: '', costPrice: '', price: '', stock: '' },
                 newPayment: { customer: '', amount: '', cost: '', method: 'Cash' },
                 newExpense: { title: '', amount: '', date: new Date().toISOString().split('T')[0] },
+                newDay: { dayName: 'Day 1', title: '', date: new Date().toISOString().split('T')[0] },
 
                 init() {
                     this.initRealtimeListeners();
@@ -571,6 +645,13 @@
 
                         window.onSnapshot(window.collection(window.db, "expenses"), (snapshot) => {
                             this.expenses = snapshot.docs.map(docSnap => ({
+                                docId: docSnap.id,
+                                ...docSnap.data()
+                            }));
+                        });
+
+                        window.onSnapshot(window.collection(window.db, "exhibitionDays"), (snapshot) => {
+                            this.exhibitionDays = snapshot.docs.map(docSnap => ({
                                 docId: docSnap.id,
                                 ...docSnap.data()
                             }));
@@ -753,6 +834,51 @@
                     }
                 },
 
+                async addExhibitionDay() {
+                    if (!this.newDay.dayName || !this.newDay.date) {
+                        alert("Please provide day name and date.");
+                        return;
+                    }
+
+                    const dayData = {
+                        dayName: this.newDay.dayName,
+                        title: this.newDay.title || 'Exhibition Day',
+                        date: this.newDay.date
+                    };
+
+                    try {
+                        await window.addDoc(window.collection(window.db, "exhibitionDays"), dayData);
+                        this.newDay = { dayName: `Day ${this.exhibitionDays.length + 2}`, title: '', date: new Date().toISOString().split('T')[0] };
+                        this.openDayModal = false;
+                    } catch (e) {
+                        alert("Error saving exhibition day.");
+                    }
+                },
+
+                async deleteExhibitionDay(docId) {
+                    try {
+                        await window.deleteDoc(window.doc(window.db, "exhibitionDays", docId));
+                    } catch (e) {
+                        alert("Error deleting exhibition day.");
+                    }
+                },
+
+                getDayRevenue(dateStr) {
+                    return this.payments
+                        .filter(p => p.date === dateStr)
+                        .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+                },
+
+                getDaySalesCount(dateStr) {
+                    return this.payments.filter(p => p.date === dateStr).length;
+                },
+
+                formatDateStr(dateStr) {
+                    if (!dateStr) return '';
+                    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                    return new Date(dateStr).toLocaleDateString('en-IN', options);
+                },
+
                 shareWhatsAppReceipt(payment) {
                     const itemName = payment.matchedItemName || payment.customer.replace('Street Customer (', '').replace(')', '') || 'Crochet Item';
                     const text = `Hello !\n🌸 Thank you for shopping with Bliss Crochet.\nHere is your receipt:\n\nItem: ${itemName}\nAmount Paid: ₹${payment.amount}\nPayment Mode: ${payment.method}\nDate: ${payment.date}\n\nWe hope you love your handmade crochet item! ✨`;
@@ -767,6 +893,10 @@
                         item.name.toLowerCase().includes(query) || 
                         (item.category && item.category.toLowerCase().includes(query))
                     );
+                },
+
+                get sortedExhibitionDays() {
+                    return [...this.exhibitionDays].sort((a, b) => new Date(a.date) - new Date(b.date));
                 },
 
                 get totalRevenue() {
