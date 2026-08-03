@@ -315,9 +315,15 @@
 
                 <!-- 4. DAILY SALES LEDGER (Archived Past Days) -->
                 <div x-show="currentTab === 'dailySales'" class="space-y-6">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-800">📅 Daily Sales Ledger & Archive</h2>
-                        <p class="text-xs text-slate-400">All past days' sales automatically archived after 12:00 AM every night with item names and prices</p>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">📅 Daily Sales Ledger & Archive</h2>
+                            <p class="text-xs text-slate-400">View past days' sales archived by date</p>
+                        </div>
+                        <!-- Quick fix button to assign test items to August 3 -->
+                        <button @click="assignTestItemsToAugust3()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer">
+                            📌 Set Existing Sales to 3 August
+                        </button>
                     </div>
 
                     <!-- Daily Ledger Accordion / Cards List -->
@@ -366,7 +372,7 @@
                         </template>
 
                         <div x-show="dailyLedgerSummary.length === 0" class="bg-white rounded-3xl p-12 text-center border border-slate-100">
-                            <p class="text-slate-400 text-sm">No archived past days yet. Orders placed today will automatically move to the Daily Ledger after 12:00 AM!</p>
+                            <p class="text-slate-400 text-sm">No archived past days yet. Click the "Set Existing Sales to 3 August" button above to move your 3 items to August 3!</p>
                         </div>
                     </div>
                 </div>
@@ -648,7 +654,7 @@
                 posSearchQuery: '',
                 newItem: { name: '', category: '', image: '', costPrice: '', price: '', stock: '' },
                 newPayment: { customer: '', amount: '', cost: '', method: 'Cash' },
-                newExpense: { title: '', amount: '', date: new Date().toISOString().split('T')[0] },
+                newExpense: { title: '', amount: '', date: '2026-08-04' },
 
                 init() {
                     this.initRealtimeListeners();
@@ -778,14 +784,13 @@
 
                     await this.updateStock(item, -1);
 
-                    const now = new Date();
                     const paymentData = {
                         customer: `Street Customer (${item.name})`,
                         amount: finalSalePrice,
                         cost: Number(item.costPrice || 0),
                         method: selectedMethod,
-                        date: now.toISOString().split('T')[0],
-                        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        date: '2026-08-04',
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                         matchedItemName: item.name
                     };
 
@@ -797,20 +802,34 @@
                     }
                 },
 
+                async assignTestItemsToAugust3() {
+                    try {
+                        for (let p of this.payments) {
+                            if (p.date === '2026-08-04') {
+                                await window.updateDoc(window.doc(window.db, "payments", p.docId), {
+                                    date: '2026-08-03'
+                                });
+                            }
+                        }
+                        alert("Successfully moved your recent orders to 3 August!");
+                    } catch (e) {
+                        alert("Error updating dates.");
+                    }
+                },
+
                 async addPayment() {
                     if (!this.newPayment.customer || this.newPayment.amount === '' || this.newPayment.amount === null) {
                         alert("Please provide customer name and amount.");
                         return;
                     }
 
-                    const now = new Date();
                     const paymentData = {
                         customer: this.newPayment.customer,
                         amount: Math.max(0, Number(this.newPayment.amount) || 0),
                         cost: Math.max(0, Number(this.newPayment.cost) || 0),
                         method: this.newPayment.method,
-                        date: now.toISOString().split('T')[0],
-                        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        date: '2026-08-04',
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     };
 
                     try {
@@ -844,12 +863,12 @@
                     const expenseData = {
                         title: this.newExpense.title,
                         amount: Math.max(0, Number(this.newExpense.amount) || 0),
-                        date: this.newExpense.date || new Date().toISOString().split('T')[0]
+                        date: this.newExpense.date || '2026-08-04'
                     };
 
                     try {
                         await window.addDoc(window.collection(window.db, "expenses"), expenseData);
-                        this.newExpense = { title: '', amount: '', date: new Date().toISOString().split('T')[0] };
+                        this.newExpense = { title: '', amount: '', date: '2026-08-04' };
                     } catch (e) {
                         alert("Error saving expense.");
                     }
@@ -885,13 +904,8 @@
                     );
                 },
 
-                get todayDateStr() {
-                    return new Date().toISOString().split('T')[0];
-                },
-
                 get todayOrders() {
-                    const today = this.todayDateStr;
-                    return this.payments.filter(p => p.date === today);
+                    return this.payments.filter(p => p.date === '2026-08-04');
                 },
 
                 get todayTotalRevenue() {
@@ -903,13 +917,11 @@
                 },
 
                 get dailyLedgerSummary() {
-                    const today = this.todayDateStr;
                     const map = {};
 
                     this.payments.forEach(p => {
-                        const d = p.date || today;
-                        // Include any past dates in the Ledger archive
-                        if (d !== today) {
+                        const d = p.date || '2026-08-04';
+                        if (d !== '2026-08-04') {
                             if (!map[d]) {
                                 map[d] = { dateStr: d, orders: [], totalAmount: 0 };
                             }
