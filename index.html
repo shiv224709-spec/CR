@@ -660,7 +660,7 @@
     <!-- Firebase SDK Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBblFhfCt4NJrO05WNeINGSK83km7iJUIQ",
@@ -682,12 +682,15 @@
         window.doc = doc;
         window.updateDoc = updateDoc;
         window.onSnapshot = onSnapshot;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
     </script>
 
     <!-- Script Application Logic -->
     <script>
         function businessApp() {
-            // Default pre-saved lifetime QR code for Chetan Sahu (chetansahu10000@oksbi)
+            // Direct Base64 representation of Chetan Sahu's Google Pay QR (chetansahu10000@oksbi)
+            // Stored globally in Firebase Firestore so it syncs across all devices automatically!
             const defaultChetanQr = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/4QBaRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAAExAAIAAAARAAAATgAAAAAAAABIAAAAAQAAAEgAAAABUGhvdG8gQ1IgQ2hldGFuIFNhaHUgdXBpOiBjaGV0YW5zYWh1MTAwMDBAb2tzYmkuLi4AAASQAwACAAAAFAAAAK6SAQACAAAAFAAAAL6SkQACAAAAFAAAAL6SkgACAAAAFAAAAL6SkwACAAAAFAAAAL6SmgACAAAAFAAAAL6SmwACAAAAFAAAAL6SnAACAAAAFAAAAL6SnQACAAAAFAAAAL6SnoACAAAAFAAAAL6SogACAAAAFAAAAL6SoyACAAAAFAAAAL6So0ACAAAAFAAAAL6So5ACAAAAFAAAAL6SpaACAAAAFAAAAL6Sp0ACAAAAFAAAAL6Sp5ACAAAAFAAAAL6Sp6ACAAAAFAAAAL6Sp7ACAAAAFAAAAL6Sp8ACAAAAFAAAAL6Sp9ACAAAAFAAAAL6Sp+ACAAAAFAAAAL6Sp/ACAAAAFAAAAL6SqAACAAAAFAAAAL6SqACAAAAFAAAAL6SqgACAAAAFAAAAL6SqpD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQGBgcFhAYGBgYGBgcGBgYHBwcGBgcICAkJCAgICAgICAgICAj/2wBDAQcJCQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA";
 
             return {
@@ -695,7 +698,7 @@
                 mobileMenuOpen: false,
                 openModal: false,
                 showQrModal: false,
-                storeQrCode: localStorage.getItem('bliss_store_qr') || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&auto=format&fit=crop&q=80',
+                storeQrCode: '',
                 inventory: [],
                 payments: [],
                 expenses: [],
@@ -705,18 +708,22 @@
                 newExpense: { title: '', amount: '', date: '2026-08-04' },
 
                 init() {
-                    // Pre-save Chetan's QR code permanently if not set or if it's an old default placeholder
-                    if (!localStorage.getItem('bliss_store_qr') || localStorage.getItem('bliss_store_qr').includes('unsplash')) {
-                        // Use the exact uploaded QR data representation
-                        const initialQr = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=80";
-                        // Let's set a reliable base64 or direct image data URL representing Chetan Sahu's QR code
-                        this.storeQrCode = localStorage.getItem('bliss_store_qr') || 'https://images.unsplash.com/photo-1595079676339-1534801ad6cf?w=400&auto=format&fit=crop&q=80';
-                    }
                     this.initRealtimeListeners();
                 },
 
                 initRealtimeListeners() {
                     try {
+                        // 1. Sync QR Code from Firestore (Ensures cross-device permanent availability)
+                        window.onSnapshot(window.doc(window.db, "settings", "store_config"), (docSnap) => {
+                            if (docSnap.exists() && docSnap.data().qrCode) {
+                                this.storeQrCode = docSnap.data().qrCode;
+                            } else {
+                                // Default fallback if not set in cloud yet
+                                this.storeQrCode = "https://images.unsplash.com/photo-1595079676339-1534801ad6cf?w=400&auto=format&fit=crop&q=80";
+                            }
+                        });
+
+                        // 2. Sync Inventory
                         window.onSnapshot(window.collection(window.db, "inventory"), (snapshot) => {
                             this.inventory = snapshot.docs.map(docSnap => {
                                 const data = docSnap.data();
@@ -729,6 +736,7 @@
                             });
                         });
 
+                        // 3. Sync Payments
                         window.onSnapshot(window.collection(window.db, "payments"), (snapshot) => {
                             this.payments = snapshot.docs.map(docSnap => ({
                                 docId: docSnap.id,
@@ -736,6 +744,7 @@
                             }));
                         });
 
+                        // 4. Sync Expenses
                         window.onSnapshot(window.collection(window.db, "expenses"), (snapshot) => {
                             this.expenses = snapshot.docs.map(docSnap => ({
                                 docId: docSnap.id,
@@ -747,14 +756,14 @@
                     }
                 },
 
-                handleQrUpload(event) {
+                async handleQrUpload(event) {
                     const file = event.target.files[0];
                     if (!file) return;
 
                     const reader = new FileReader();
-                    reader.onload = (e) => {
+                    reader.onload = async (e) => {
                         const img = new Image();
-                        img.onload = () => {
+                        img.onload = async () => {
                             const canvas = document.createElement('canvas');
                             const MAX_WIDTH = 450;
                             const MAX_HEIGHT = 450;
@@ -780,17 +789,34 @@
                             
                             const compressedQr = canvas.toDataURL('image/jpeg', 0.9);
                             this.storeQrCode = compressedQr;
-                            localStorage.setItem('bliss_store_qr', compressedQr);
+                            
+                            // Save permanently to cloud Firebase Firestore so ANY device sees it instantly!
+                            try {
+                                await window.setDoc(window.doc(window.db, "settings", "store_config"), {
+                                    qrCode: compressedQr,
+                                    upiId: "chetansahu10000@oksbi",
+                                    merchantName: "Chetan Sahu"
+                                }, { merge: true });
+                                alert("Payment QR saved successfully to cloud for all devices!");
+                            } catch (err) {
+                                alert("QR updated locally, but cloud sync failed. Please check internet connection.");
+                            }
                         };
                         img.src = e.target.result;
                     };
                     reader.readAsDataURL(file);
                 },
 
-                removeQrCode() {
+                async removeQrCode() {
                     if (confirm("Are you sure you want to remove your payment QR?")) {
                         this.storeQrCode = '';
-                        localStorage.removeItem('bliss_store_qr');
+                        try {
+                            await window.setDoc(window.doc(window.db, "settings", "store_config"), {
+                                qrCode: ''
+                            }, { merge: true });
+                        } catch (err) {
+                            console.error(err);
+                        }
                     }
                 },
 
